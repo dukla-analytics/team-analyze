@@ -1810,44 +1810,14 @@ function renderPrepTab(opp, matches) {
       if (dnaContainer) {
           dnaContainer.innerHTML = `
               ${renderDnaBar('Držení míče [%]', dnaOpp.poss, dnaLg.poss, false, 35, 65)}
-              ${renderDnaBar('Délka přihrávky [m]', dnaOpp.passLen, dnaLg.passLen, false, 15, 25)}
-              ${renderDnaBar('Podíl dlouhých přihrávek [%]', dnaOpp.long, dnaLg.long, false, 5, 25)}
-              ${renderDnaBar('Odkopy (Clearances)', dnaOpp.clearances, dnaLg.clearances, false, 5, 30)}
+              ${renderDnaBar('Délka přihrávky [m]', dnaOpp.passLen, dnaLg.passLen, false, 10, 30)}
+              ${renderDnaBar('Podíl dlouhých přihrávek [%]', dnaOpp.long, dnaLg.long, false, 0, 100)}
+              ${renderDnaBar('Odkopy (Clearances)', dnaOpp.clearances, dnaLg.clearances, false, 5, 50)}
               ${renderDnaBar('Intenzita presinku [PPDA - méně je víc]', dnaOpp.ppda, dnaLg.ppda, true, 4, 16)}
-              ${renderDnaBar('Centry do vápna', dnaOpp.crosses, dnaLg.crosses, false, 5, 25)}
+              ${renderDnaBar('Centry do vápna', dnaOpp.crosses, dnaLg.crosses, false, 0, 50)}
           `;
       }
-      
-      // ... zde v renderPrepTab pokračuje tvůj původní kód pro splits (doma/venku) a hypotézy ...
-      /*document.getElementById('opp-recent-body').innerHTML = matches.slice(0,5).map(m => {
-        const gf = m.goals;
-        const ga = m.goalsAgainst;
-        let resLetter = 'R';
-        let resColor = 'bg-yellow-500 text-white';
-        if (gf > ga) { resLetter = 'V'; resColor = 'bg-green-500 text-white'; }
-        else if (gf < ga) { resLetter = 'P'; resColor = 'bg-red-500 text-white'; }
-
-        return `
-          <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0">
-            <td class="py-3 px-2 text-gray-500 text-xs">${m.date}</td>
-            <td class="py-3 px-2">
-              <div class="flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded flex items-center justify-center font-bold text-xs ${resColor}">${resLetter}</span>
-                <div>
-                  <div class="font-bold text-gray-900">${m.opponent.replace(' U19','')}</div>
-                  <div class="text-[10px] text-gray-500 uppercase">${m.isHome ? 'Doma' : 'Venku'}</div>
-                </div>
-              </div>
-            </td>
-            <td class="py-3 px-2 text-center font-black text-lg text-gray-800">${gf}:${ga}</td>
-            <td class="py-3 px-2 text-right font-bold text-gray-700">${m.xg.toFixed(2)}</td>
-            <td class="py-3 px-2 text-right text-gray-400">${m.xga.toFixed(2)}</td>
-          </tr>
-        `;
-      }).join('');*/
-
       // ... (zbytek funkce s výpočtem splits doma/venku zůstává nedotčený)
-
       const split = (isH) => {
         const ms = matches.filter(m => m.isHome === isH);
         if(!ms.length) return {c:0, xg:0, xga:0, sh:0, ppda:0};
