@@ -342,17 +342,19 @@
         </div>
       </div>
 
-<!-- Taktická DNA -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        
+        <!-- Taktická DNA -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col">
           <h3 class="text-lg font-bold text-gray-900 mb-1">Taktická DNA (Styl hry)</h3>
           <p class="text-xs text-gray-500 mb-4">Vizuální porovnání stylu soupeře vůči ligovému průměru (černá ryska).</p>
-          <div id="opp-tactical-dna" class="space-y-5 mt-2">
+          <div id="opp-tactical-dna" class="space-y-4 mt-1 flex-1">
             <div class="text-xs text-gray-400 italic">Zvolte soupeře v hlavičce...</div>
           </div>
         </div>
 
         <!-- Liší se doma a venku -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col">
           <h3 class="text-lg font-bold text-gray-900 mb-1">Liší se doma a venku?</h3>
           <p class="text-xs text-gray-500 mb-4">Průměry na dostupný zápas; rozdílní soupeři mohou ovlivnit rozdíl.</p>
           <table class="w-full text-sm text-left">
@@ -369,6 +371,7 @@
             <tbody id="opp-splits-body" class="divide-y divide-gray-100 font-mono text-gray-700"></tbody>
           </table>
         </div>
+        
       </div>
 
       <!-- Profil soupeře podle koncepce -->
@@ -1457,8 +1460,80 @@ function renderHorizontalBarChart() {
         }
       });
     }
-
 function renderEvolutionTab() {
+      try {
+        const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam).sort((a,b) => {
+          const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
+          const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
+          return new Date(dateA) - new Date(dateB);
+        });
+        
+        const tbody = document.getElementById('club-matches-body');
+        if (tbody) {
+          tbody.innerHTML = [...myMatches].reverse().map(m => {
+            const xg = Number(m.xg) || 0;
+            const xga = Number(m.xga) || 0;
+            const ppda = Number(m.ppda) || 0;
+            const diff = (xg - xga).toFixed(2);
+            
+            // BEZPEČNÁ FORMACE
+            const rawScheme = m['Scheme'] ? String(m['Scheme']) : (m['Formation'] ? String(m['Formation']) : '-');
+            const formace = rawScheme !== '-' ? rawScheme.split('(')[0].trim() : '-';
+            
+            return `
+              <tr class="hover:bg-gray-50 border-b last:border-0">
+                <td class="py-2 px-3 text-gray-500">${m.date || '-'}</td>
+                <td class="py-2 px-3 font-bold">${m.opponent || '-'}</td>
+                <td class="py-2 px-2 text-center text-gray-400">${m.isHome ? 'Doma' : 'Venku'}</td>
+                <td class="py-2 px-2 text-center font-bold">${m.score || '-:-'}</td>
+                <td class="py-2 px-2 text-center text-indigo-700 font-bold tabular-nums">${formace}</td>
+                <td class="py-2 px-2 text-right tabular-nums">${xg.toFixed(2)}</td>
+                <td class="py-2 px-2 text-right text-gray-400 tabular-nums">${xga.toFixed(2)}</td>
+                <td class="py-2 px-2 text-right font-bold tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-red-600'}">${diff >= 0 ? '+'+diff : diff}</td>
+                <td class="py-2 px-2 text-right tabular-nums">${m.shots || 0}</td>
+                <td class="py-2 px-2 text-right text-brand-gold tabular-nums">${ppda.toFixed(1)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (error) {
+        console.warn("Chyba při kreslení tabulky Dukly:", error);
+      }
+
+      try {
+        const ctx = document.getElementById('evolutionChart');
+        if (!ctx) return; 
+
+        const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam).sort((a,b) => {
+          const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
+          const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
+          return new Date(dateA) - new Date(dateB);
+        });
+
+        if(charts.evo) charts.evo.destroy();
+        charts.evo = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: myMatches.map(m => (m.opponent ? String(m.opponent) : '').replace(' U19','')),
+            datasets: [
+              { label: 'Naše xG', data: myMatches.map(m => Number(m.xg) || 0), borderColor: '#e5a823', backgroundColor: 'rgba(229,168,35,0.1)', fill: true, tension: 0.2 },
+              { label: 'Soupeřovo xGA', data: myMatches.map(m => Number(m.xga) || 0), borderColor: '#7a1527', borderDash: [5,5], fill: false, tension: 0.2 }
+            ]
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true },
+              datalabels: { display: false } 
+            }
+          }
+        });
+      } catch (error) {
+        console.warn("Chyba při kreslení xG grafu:", error);
+      }
+    }
+/*function renderEvolutionTab() {
       try {
         // AIRBAG 1: Ošetření data přes String(), aby fungoval .split()
         const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam).sort((a,b) => {
@@ -1526,7 +1601,7 @@ const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
       } catch (error) {
         console.warn("Kritická chyba v renderEvolutionTab:", error);
       }
-    }
+    }*/
 function renderOpponentMatchesTable() {
       try {
         const oppSelect = document.getElementById('global-opponent');
@@ -1680,17 +1755,21 @@ function renderPrepTab(opp, matches) {
       // Soupeřova čísla
       const dnaOpp = {
           poss: calcAvg(matches, 'Possession %'),
-          long: calcAvg(matches, 'Long pass%'),
+          long: calcAvg(matches, 'Long pass %'),
           ppda: calcAvg(matches, 'PPDA'),
-          crosses: calcAvg(matches, 'Crosses')
+          crosses: calcAvg(matches, 'Crosses'),
+          passLen: calcAvg(MATCHES, ['Average pass length']),
+          clearances: calcAvg(MATCHES, ['Clearances']),
       };
 
       // Ligová čísla (pro srovnání)
       const dnaLg = {
-          poss: calcAvg(MATCHES, 'Possession %'),
-          long: calcAvg(MATCHES, 'Long pass%'),
-          ppda: calcAvg(MATCHES, 'PPDA'),
-          crosses: calcAvg(MATCHES, 'Crosses')
+          poss: calcAvg(matches, 'Possession %'),
+          long: calcAvg(matches, 'Long pass %'),
+          ppda: calcAvg(matches, 'PPDA'),
+          crosses: calcAvg(matches, 'Crosses'),
+          passLen: calcAvg(MATCHES, ['Average pass length']),
+          clearances: calcAvg(MATCHES, ['Clearances']),
       };
 
       // Generátor vizuálních "teploměrů"
