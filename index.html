@@ -1480,10 +1480,7 @@ function renderEvolutionTab() {
             
             // AIRBAG 3: Převod formace na text, aby fungoval .split()
 // 1. Bezpečně načteme data ze sloupce Scheme
-const rawScheme = m['Scheme'] ? String(m['Scheme']).trim() : '-';
-
-// 2. Tvůj nápad: usekneme to hned u první mezery
-const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
+const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
             
             return `
               <tr class="hover:bg-gray-50">
@@ -1552,12 +1549,7 @@ function renderOpponentMatchesTable() {
             const ppda = Number(m.ppda) || 0;
             const diff = (xg - xga).toFixed(2);
             
-            // OPRAVA FORMACE: Odsekneme to až u závorky a smažeme přebytečné mezery na konci (.trim)
-// 1. Bezpečně načteme data ze sloupce Scheme
-const rawScheme = m['Scheme'] ? String(m['Scheme']).trim() : '-';
-
-// 2. Tvůj nápad: usekneme to hned u první mezery
-const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
+const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
 
             return `
               <tr class="hover:bg-gray-50 border-b last:border-0">
