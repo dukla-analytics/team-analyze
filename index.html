@@ -1746,40 +1746,48 @@ const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
 
 function renderPrepTab(opp, matches) {
   // 1. BEZPEČNÝ VÝPOČET TAKTICKÉ DNA
-      // Funkce, která spočítá průměr pro soupeře nebo celou ligu (odfiltruje prázdná data)
-      const calcAvg = (dataset, metric) => {
-          const valid = dataset.filter(m => m[metric] != null && !isNaN(parseFloat(m[metric])));
-          return valid.length ? valid.reduce((s, m) => s + parseFloat(m[metric]), 0) / valid.length : 0;
+      // Chytřejší funkce, která zvládne i pole možných názvů (řeší problém s Long pass)
+      const calcAvgSafe = (dataset, possibleKeys) => {
+          let sum = 0, count = 0;
+          dataset.forEach(m => {
+              for (let k of possibleKeys) {
+                  if (m[k] !== undefined && m[k] !== null && !isNaN(parseFloat(m[k]))) {
+                      sum += parseFloat(m[k]);
+                      count++;
+                      break; 
+                  }
+              }
+          });
+          return count > 0 ? sum / count : 0;
       };
 
-      // Soupeřova čísla
+      // Soupeřova čísla (zde musí být VŽDY JEN malá písmena: 'matches')
       const dnaOpp = {
-          poss: calcAvg(matches, 'Possession %'),
-          long: calcAvg(matches, 'Long pass %'),
-          ppda: calcAvg(matches, 'PPDA'),
-          crosses: calcAvg(matches, 'Crosses'),
-          passLen: calcAvg(MATCHES, ['Average pass length']),
-          clearances: calcAvg(MATCHES, ['Clearances']),
+          poss: calcAvgSafe(matches, ['Possession %', 'possession', 'Possession, %']),
+          long: calcAvgSafe(matches, ['Long passes%', 'Long pass %', 'Long pass%', 'Long passes %']),
+          ppda: calcAvgSafe(matches, ['PPDA', 'ppda']),
+          crosses: calcAvgSafe(matches, ['Crosses']),
+          passLen: calcAvgSafe(matches, ['Average pass length']),
+          clearances: calcAvgSafe(matches, ['Clearances']),
       };
 
-      // Ligová čísla (pro srovnání)
+      // Ligová čísla pro srovnání (zde musí být VŽDY JEN velká písmena: 'MATCHES')
       const dnaLg = {
-          poss: calcAvg(matches, 'Possession %'),
-          long: calcAvg(matches, 'Long pass %'),
-          ppda: calcAvg(matches, 'PPDA'),
-          crosses: calcAvg(matches, 'Crosses'),
-          passLen: calcAvg(MATCHES, ['Average pass length']),
-          clearances: calcAvg(MATCHES, ['Clearances']),
+          poss: calcAvgSafe(MATCHES, ['Possession %', 'possession', 'Possession, %']),
+          long: calcAvgSafe(MATCHES, ['Long passes%', 'Long pass %', 'Long pass%', 'Long passes %']),
+          ppda: calcAvgSafe(MATCHES, ['PPDA', 'ppda']),
+          crosses: calcAvgSafe(MATCHES, ['Crosses']),
+          passLen: calcAvgSafe(MATCHES, ['Average pass length']),
+          clearances: calcAvgSafe(MATCHES, ['Clearances']),
       };
 
       // Generátor vizuálních "teploměrů"
       const renderDnaBar = (label, val, lgVal, isReversed, min, max) => {
-          if (!val || !lgVal) return ''; // Ochrana pro prázdná data
+          if (!val || !lgVal) return ''; 
           
           let pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
           let lgPct = Math.max(0, Math.min(100, ((lgVal - min) / (max - min)) * 100));
 
-          // Pokud je hodnota extrémnější než liga, obarvíme ji výrazněji
           let isExtreme = isReversed ? (val < lgVal) : (val > lgVal);
           let color = isExtreme ? 'bg-indigo-600' : 'bg-gray-400';
 
