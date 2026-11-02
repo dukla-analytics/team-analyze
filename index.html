@@ -320,7 +320,7 @@
         <p class="text-sm text-gray-600 mt-1">Nejprve čtěte data, pak ověřte chování ve videu.</p>
       </div>
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Zápasy Dukly Praha</h3>
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Zápasy soupeře</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left text-gray-700">
             <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
@@ -1517,16 +1517,16 @@ function renderHorizontalBarChart() {
       }
     }
     function renderOpponentMatchesTable() {
+  try {
     const oppSelect = document.getElementById('global-opponent');
     if (!oppSelect || !oppSelect.value) return;
     
     const oppName = oppSelect.value;
     
-    // Vybere všechny zápasy soupeře a bezpečně je seřadí podle data
     const oppMatches = MATCHES.filter(m => m.team === oppName)
         .sort((a, b) => {
-            const dateA = a.date ? a.date.split('.').reverse().join('-') : '2000-01-01';
-            const dateB = b.date ? b.date.split('.').reverse().join('-') : '2000-01-01';
+            const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
+            const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
             return new Date(dateA) - new Date(dateB);
         });
 
@@ -1538,8 +1538,8 @@ function renderHorizontalBarChart() {
             const diff = (xg - xga).toFixed(2);
             const vsTeam = m.opponent || 'Neznámý soupeř';
             
-            // Vytažení a vyčištění formace (odseknutí procent z Wyscoutu)
-            const rawScheme = m['Scheme'] || '-';
+            // BEZPEČNÁ FORMACE
+            const rawScheme = m['Scheme'] ? String(m['Scheme']) : '-';
             const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
 
             return `
@@ -1548,9 +1548,7 @@ function renderHorizontalBarChart() {
                 <td class="py-2 px-3 font-bold">${vsTeam}</td>
                 <td class="py-2 px-2 text-center text-gray-400">${m.isHome ? 'Doma' : 'Venku'}</td>
                 <td class="py-2 px-2 text-center font-bold">${m.score || '-:-'}</td>
-                
                 <td class="py-2 px-2 text-center text-indigo-700 font-bold tabular-nums">${formace}</td>
-                
                 <td class="py-2 px-2 text-right tabular-nums">${xg.toFixed(2)}</td>
                 <td class="py-2 px-2 text-right text-gray-400 tabular-nums">${xga.toFixed(2)}</td>
                 <td class="py-2 px-2 text-right font-bold tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-red-600'}">${diff >= 0 ? '+'+diff : diff}</td>
@@ -1558,8 +1556,10 @@ function renderHorizontalBarChart() {
             `;
         }).join('');
     }
+  } catch (err) {
+    console.error("Chyba při kreslení tabulky soupeře:", err);
+  }
 }
-
     function updateOpponentViews() {
       const opp = document.getElementById('global-opponent').value;
       
