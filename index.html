@@ -342,23 +342,13 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Posledních 5 výsledků -->
+<!-- Taktická DNA -->
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
-          <h3 class="text-lg font-bold text-gray-900 mb-1">Posledních pět výsledků</h3>
-          <p class="text-xs text-gray-500 mb-4">V aktivním období; skóre z pohledu soupeře.</p>
-          <table class="w-full text-sm text-left">
-            <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="py-2 px-2">Datum</th>
-                <th class="py-2 px-2">Zápas</th>
-                <th class="py-2 px-2 text-center">Skóre</th>
-                <th class="py-2 px-2 text-right">xG</th>
-                <th class="py-2 px-2 text-right">xGA</th>
-              </tr>
-            </thead>
-            <tbody id="opp-recent-body" class="divide-y divide-gray-100 font-mono text-gray-700"></tbody>
-          </table>
+          <h3 class="text-lg font-bold text-gray-900 mb-1">Taktická DNA (Styl hry)</h3>
+          <p class="text-xs text-gray-500 mb-4">Vizuální porovnání stylu soupeře vůči ligovému průměru (černá ryska).</p>
+          <div id="opp-tactical-dna" class="space-y-5 mt-2">
+            <div class="text-xs text-gray-400 italic">Zvolte soupeře v hlavičce...</div>
+          </div>
         </div>
 
         <!-- Liší se doma a venku -->
@@ -884,10 +874,19 @@ function normalizeData(rows) {
         };
 
         // DYNAMICKÁ DATA PRO DETAILNÍ KONCEPCI
-        Object.keys(r).forEach(k => {
+Object.keys(r).forEach(k => {
           let safeKey = k.trim();
+          
+          // OCHRANA FORMACE: Sloupec Scheme (nebo Formation) přeskočíme, aby z něj parseFloat neudělal číslo 3
+          if (safeKey.toLowerCase() === 'scheme' || safeKey.toLowerCase() === 'formation') {
+            obj[safeKey] = r[k] ? String(r[k]) : '-';
+            return; 
+          }
+
           if (r[k] != null && r[k] !== "") {
-            let val = parseFloat(r[k]);
+            // Bezpečný převod na číslo (ošetření desetinné čárky z Excelu)
+            let valStr = r[k].toString().replace(',', '.');
+            let val = parseFloat(valStr);
             if (!isNaN(val)) obj[safeKey] = val;
           }
         });
@@ -1480,7 +1479,7 @@ function renderEvolutionTab() {
             
             // AIRBAG 3: Převod formace na text, aby fungoval .split()
 // 1. Bezpečně načteme data ze sloupce Scheme
-const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
+const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
             
             return `
               <tr class="hover:bg-gray-50">
@@ -1671,7 +1670,67 @@ const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
     }
 
 function renderPrepTab(opp, matches) {
-      document.getElementById('opp-recent-body').innerHTML = matches.slice(0,5).map(m => {
+  // 1. BEZPEČNÝ VÝPOČET TAKTICKÉ DNA
+      // Funkce, která spočítá průměr pro soupeře nebo celou ligu (odfiltruje prázdná data)
+      const calcAvg = (dataset, metric) => {
+          const valid = dataset.filter(m => m[metric] != null && !isNaN(parseFloat(m[metric])));
+          return valid.length ? valid.reduce((s, m) => s + parseFloat(m[metric]), 0) / valid.length : 0;
+      };
+
+      // Soupeřova čísla
+      const dnaOpp = {
+          poss: calcAvg(matches, 'Possession %'),
+          long: calcAvg(matches, 'Long pass%'),
+          ppda: calcAvg(matches, 'PPDA'),
+          crosses: calcAvg(matches, 'Crosses')
+      };
+
+      // Ligová čísla (pro srovnání)
+      const dnaLg = {
+          poss: calcAvg(MATCHES, 'Possession %'),
+          long: calcAvg(MATCHES, 'Long pass%'),
+          ppda: calcAvg(MATCHES, 'PPDA'),
+          crosses: calcAvg(MATCHES, 'Crosses')
+      };
+
+      // Generátor vizuálních "teploměrů"
+      const renderDnaBar = (label, val, lgVal, isReversed, min, max) => {
+          if (!val || !lgVal) return ''; // Ochrana pro prázdná data
+          
+          let pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+          let lgPct = Math.max(0, Math.min(100, ((lgVal - min) / (max - min)) * 100));
+
+          // Pokud je hodnota extrémnější než liga, obarvíme ji výrazněji
+          let isExtreme = isReversed ? (val < lgVal) : (val > lgVal);
+          let color = isExtreme ? 'bg-indigo-600' : 'bg-gray-400';
+
+          return `
+          <div>
+              <div class="flex justify-between text-xs font-bold mb-1.5 text-gray-700">
+                  <span>${label}</span>
+                  <span class="tabular-nums">${val.toFixed(1)} <span class="text-gray-400 font-normal ml-1"> (Liga: ${lgVal.toFixed(1)})</span></span>
+              </div>
+              <div class="relative w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="absolute top-0 left-0 h-full ${color} rounded-full transition-all" style="width: ${pct}%"></div>
+                  <!-- Černá ryska představující ligu -->
+                  <div class="absolute top-0 w-1 h-full bg-gray-900 z-10 rounded-full" style="left: ${lgPct}%" title="Ligový průměr"></div>
+              </div>
+          </div>`;
+      };
+
+      // Vykreslení do HTML
+      const dnaContainer = document.getElementById('opp-tactical-dna');
+      if (dnaContainer) {
+          dnaContainer.innerHTML = `
+              ${renderDnaBar('Držení míče [%]', dnaOpp.poss, dnaLg.poss, false, 35, 65)}
+              ${renderDnaBar('Podíl dlouhých přihrávek [%]', dnaOpp.long, dnaLg.long, false, 5, 25)}
+              ${renderDnaBar('Intenzita presinku [PPDA - méně je víc]', dnaOpp.ppda, dnaLg.ppda, true, 4, 16)}
+              ${renderDnaBar('Centry do vápna', dnaOpp.crosses, dnaLg.crosses, false, 5, 25)}
+          `;
+      }
+      
+      // ... zde v renderPrepTab pokračuje tvůj původní kód pro splits (doma/venku) a hypotézy ...
+      /*document.getElementById('opp-recent-body').innerHTML = matches.slice(0,5).map(m => {
         const gf = m.goals;
         const ga = m.goalsAgainst;
         let resLetter = 'R';
@@ -1696,7 +1755,7 @@ function renderPrepTab(opp, matches) {
             <td class="py-3 px-2 text-right text-gray-400">${m.xga.toFixed(2)}</td>
           </tr>
         `;
-      }).join('');
+      }).join('');*/
 
       // ... (zbytek funkce s výpočtem splits doma/venku zůstává nedotčený)
 
