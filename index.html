@@ -1459,30 +1459,41 @@ function renderHorizontalBarChart() {
       });
     }
 
-    function renderEvolutionTab() {
+function renderEvolutionTab() {
       try {
-        const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam).sort((a,b) => new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-')));
+        // AIRBAG 1: Ošetření data přes String(), aby fungoval .split()
+        const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam).sort((a,b) => {
+          const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
+          const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
+          return new Date(dateA) - new Date(dateB);
+        });
         
         // 1. ZÁPASY DUKLA (TABULKA)
-        // Přesunuto na začátek: ať se děje cokoliv, tabulka se musí vypsat!
         const tbody = document.getElementById('club-matches-body');
         if (tbody) {
           tbody.innerHTML = [...myMatches].reverse().map(m => {
-            const diff = (m.xg - m.xga).toFixed(2);
-            const rawScheme = m['Scheme'] || '-';
+            // AIRBAG 2: Převod čísel, aby fungovalo .toFixed(2)
+            const xg = Number(m.xg) || 0;
+            const xga = Number(m.xga) || 0;
+            const ppda = Number(m.ppda) || 0;
+            const diff = (xg - xga).toFixed(2);
+            
+            // AIRBAG 3: Převod formace na text, aby fungoval .split()
+            const rawScheme = m['Scheme'] ? String(m['Scheme']) : '-';
             const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
+            
             return `
               <tr class="hover:bg-gray-50">
-                <td class="py-2 px-3 text-gray-500">${m.date}</td>
-                <td class="py-2 px-3 font-bold">${m.opponent}</td>
+                <td class="py-2 px-3 text-gray-500">${m.date || '-'}</td>
+                <td class="py-2 px-3 font-bold">${m.opponent || '-'}</td>
                 <td class="py-2 px-2 text-center text-gray-400">${m.isHome ? 'Doma' : 'Venku'}</td>
-                <td class="py-2 px-2 text-center font-bold">${m.score}</td>
+                <td class="py-2 px-2 text-center font-bold">${m.score || '-:-'}</td>
                 <td class="py-2 px-2 text-center text-indigo-700 font-bold tabular-nums">${formace}</td>
-                <td class="py-2 px-2 text-right">${m.xg.toFixed(2)}</td>
-                <td class="py-2 px-2 text-right text-gray-400">${m.xga.toFixed(2)}</td>
+                <td class="py-2 px-2 text-right">${xg.toFixed(2)}</td>
+                <td class="py-2 px-2 text-right text-gray-400">${xga.toFixed(2)}</td>
                 <td class="py-2 px-2 text-right font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-red-600'}">${diff >= 0 ? '+'+diff : diff}</td>
-                <td class="py-2 px-2 text-right">${m.shots}</td>
-                <td class="py-2 px-2 text-right text-brand-gold">${m.ppda.toFixed(1)}</td>
+                <td class="py-2 px-2 text-right">${m.shots || 0}</td>
+                <td class="py-2 px-2 text-right text-brand-gold">${ppda.toFixed(1)}</td>
               </tr>
             `;
           }).join('');
@@ -1496,10 +1507,11 @@ function renderHorizontalBarChart() {
         charts.evo = new Chart(ctx, {
           type: 'line',
           data: {
-            labels: myMatches.map(m => m.opponent.replace(' U19','')),
+            // AIRBAG 4: Jméno soupeře na text, aby fungoval .replace()
+            labels: myMatches.map(m => (m.opponent ? String(m.opponent) : '').replace(' U19','')),
             datasets: [
-              { label: 'Naše xG', data: myMatches.map(m => m.xg), borderColor: '#e5a823', backgroundColor: 'rgba(229,168,35,0.1)', fill: true, tension: 0.2 },
-              { label: 'Soupeřovo xGA', data: myMatches.map(m => m.xga), borderColor: '#7a1527', borderDash: [5,5], fill: false, tension: 0.2 }
+              { label: 'Naše xG', data: myMatches.map(m => Number(m.xg) || 0), borderColor: '#e5a823', backgroundColor: 'rgba(229,168,35,0.1)', fill: true, tension: 0.2 },
+              { label: 'Soupeřovo xGA', data: myMatches.map(m => Number(m.xga) || 0), borderColor: '#7a1527', borderDash: [5,5], fill: false, tension: 0.2 }
             ]
           },
           options: { 
@@ -1513,7 +1525,7 @@ function renderHorizontalBarChart() {
           }
         });
       } catch (error) {
-        console.warn("Chyba při kreslení vývojového grafu, ale tabulka by měla být v pořádku:", error);
+        console.warn("Kritická chyba v renderEvolutionTab:", error);
       }
     }
     function renderOpponentMatchesTable() {
