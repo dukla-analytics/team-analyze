@@ -1009,68 +1009,42 @@ function updateConceptArea() {
    function renderHeroStats() {
       const container = document.getElementById('hero-stats-container'); 
       if (!container) return;
-
       const me = CONFIG.primaryTeam;
 
-      // Oddělená konta pro Duklu a pro celou Ligu
-      let statsMe = { count: 0, xg: 0, xga: 0, possession: 0, ppda: 0 };
-      let statsLeague = { count: 0, xg: 0, xga: 0, possession: 0, ppda: 0 };
-
-      if (typeof MATCHES !== 'undefined' && MATCHES.length > 0) {
+      // Chytrá funkce pro průměr nezávisle na počtu zápasů
+      const calcMetricAvg = (teamName, possibleKeys) => {
+        let sum = 0, count = 0;
         MATCHES.forEach(m => {
-          // Záchranná funkce: vytáhne číslo bez ohledu na velká písmena nebo čárky/tečky
-          const getVal = (keys) => {
-            for (let k of keys) {
+          if (teamName === 'LIGA' || m.team === teamName) {
+            for (let k of possibleKeys) {
               if (m[k] !== undefined && m[k] !== null && m[k] !== '') {
                 let v = parseFloat(m[k].toString().replace(',', '.'));
-                if (!isNaN(v)) return v;
+                if (!isNaN(v)) {
+                  sum += v;
+                  count++;
+                  break;
+                }
               }
-            }
-            return 0;
-          };
-
-          // Zkoušíme všechny možné názvy (tvé, původní CSV hlavičky i syrová písmena z JSONu)
-          let xg = getVal(['xg', 'xG', 'H']);
-          let xga = getVal(['xga', 'xGA', 'Goals against', 'BI']);
-          let poss = getVal(['possession', 'Possession, %', 'O']);
-          let ppda = getVal(['ppda', 'PPDA', 'DE']);
-
-          // Započítáme do Ligy (pokud je to platný řádek s týmem)
-          if (m.team) {
-            statsLeague.count++;
-            statsLeague.xg += xg;
-            statsLeague.xga += xga;
-            statsLeague.possession += poss;
-            statsLeague.ppda += ppda;
-
-            // Započítáme Dukle
-            if (m.team === me) {
-              statsMe.count++;
-              statsMe.xg += xg;
-              statsMe.xga += xga;
-              statsMe.possession += poss;
-              statsMe.ppda += ppda;
             }
           }
         });
-      }
+        return count > 0 ? sum / count : 0;
+      };
 
-      // Výpočet finálních průměrů
       const myAvg = {
-        xg: statsMe.count ? (statsMe.xg / statsMe.count) : 0,
-        xga: statsMe.count ? (statsMe.xga / statsMe.count) : 0,
-        possession: statsMe.count ? (statsMe.possession / statsMe.count) : 0,
-        ppda: statsMe.count ? (statsMe.ppda / statsMe.count) : 0
+        xg: calcMetricAvg(me, ['xg', 'xG', 'H']),
+        xga: calcMetricAvg(me, ['xga', 'xGA', 'Goals against', 'BI']),
+        possession: calcMetricAvg(me, ['possession', 'Possession, %', 'O']),
+        ppda: calcMetricAvg(me, ['ppda', 'PPDA', 'DE'])
       };
 
       const leagueAvg = {
-        xg: statsLeague.count ? (statsLeague.xg / statsLeague.count) : 0,
-        xga: statsLeague.count ? (statsLeague.xga / statsLeague.count) : 0,
-        possession: statsLeague.count ? (statsLeague.possession / statsLeague.count) : 0,
-        ppda: statsLeague.count ? (statsLeague.ppda / statsLeague.count) : 0
+        xg: calcMetricAvg('LIGA', ['xg', 'xG', 'H']),
+        xga: calcMetricAvg('LIGA', ['xga', 'xGA', 'Goals against', 'BI']),
+        possession: calcMetricAvg('LIGA', ['possession', 'Possession, %', 'O']),
+        ppda: calcMetricAvg('LIGA', ['ppda', 'PPDA', 'DE'])
       };
 
-      // Pomocná funkce pro vygenerování jedné karty
       const buildCard = (title, valMe, valLeague, isDefenseMetric, isPercentage = false) => {
         let displayMe = valMe.toFixed(2);
         let displayLeague = valLeague ? valLeague.toFixed(2) : "0.00";
@@ -1080,7 +1054,6 @@ function updateConceptArea() {
           displayLeague = valLeague ? valLeague.toFixed(1) + ' %' : "0.0 %";
         }
 
-        // Tady barvíme šipku a text podle toho, jestli jsme lepší než liga
         let isBetter = isDefenseMetric ? (valMe < valLeague) : (valMe > valLeague);
         let comparisonColor = isBetter ? 'text-green-600' : 'text-brand-red';
         let arrow = isBetter ? '▲' : '▼';
@@ -1099,7 +1072,6 @@ function updateConceptArea() {
         `;
       };
 
-      // Finální vykreslení HTML s použitím nově spočítaných proměnných
       container.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           ${buildCard('Očekávané góly (xG)', myAvg.xg, leagueAvg.xg, false)}
@@ -1109,7 +1081,6 @@ function updateConceptArea() {
         </div>
       `;
     }
-
 function renderLeagueTable() {
       const opp = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : '';
       const teams = {};
@@ -1290,18 +1261,35 @@ function renderScatterChart() {
       const teams = {};
       
       MATCHES.forEach(m => {
-        if(!teams[m.team]) teams[m.team] = { xg:0, xga:0, c:0 };
-        teams[m.team].xg+=m.xg; teams[m.team].xga+=m.xga; teams[m.team].c++;
+        if (!teams[m.team]) teams[m.team] = { xgSum: 0, xgCount: 0, xgaSum: 0, xgaCount: 0 };
+        
+        // Započítáme xG jen když existuje
+        let xgVal = parseFloat(m.xg);
+        if (!isNaN(xgVal) && xgVal > 0) {
+            teams[m.team].xgSum += xgVal;
+            teams[m.team].xgCount++;
+        }
+        
+        // Započítáme xGA jen když existuje
+        let xgaVal = parseFloat(m.xga);
+        if (!isNaN(xgaVal) && xgaVal > 0) {
+            teams[m.team].xgaSum += xgaVal;
+            teams[m.team].xgaCount++;
+        }
       });
 
-      const data = Object.keys(teams).map(t => ({
-        label: t,
-        // OTOČENÍ OS: xGA jde na osu X, xG jde na osu Y
-        x: parseFloat((teams[t].xga / teams[t].c).toFixed(2)),
-        y: parseFloat((teams[t].xg / teams[t].c).toFixed(2)),
-        isMe: t === CONFIG.primaryTeam,
-        isOpponent: t === opp
-      }));
+      const data = Object.keys(teams).map(t => {
+        const avgXg = teams[t].xgCount > 0 ? (teams[t].xgSum / teams[t].xgCount) : 0;
+        const avgXga = teams[t].xgaCount > 0 ? (teams[t].xgaSum / teams[t].xgaCount) : 0;
+        
+        return {
+          label: t,
+          x: parseFloat(avgXga.toFixed(2)),
+          y: parseFloat(avgXg.toFixed(2)),
+          isMe: t === CONFIG.primaryTeam,
+          isOpponent: t === opp
+        };
+      }).filter(d => d.x > 0 || d.y > 0); // Skryjeme týmy, co nemají žádná data
 
       const ctx = document.getElementById('scatterChart');
       if(charts.scatter) charts.scatter.destroy();
@@ -1311,9 +1299,9 @@ function renderScatterChart() {
           datasets: [{
             data: data,
             backgroundColor: data.map(d => {
-              if (d.isMe) return '#e5a823'; // Zlatá pro primární tým
-              if (d.isOpponent) return '#7a1527'; // Vínová pro Soupeře
-              return '#9ca3af'; // Šedá pro ostatní
+              if (d.isMe) return '#e5a823';
+              if (d.isOpponent) return '#7a1527';
+              return '#9ca3af';
             }),
             borderColor: data.map(d => {
               if (d.isMe) return '#7a1527';
@@ -1338,7 +1326,7 @@ function renderScatterChart() {
           },
           scales: {
             x: { 
-              min: 0, // Začátek od nuly
+              min: 0, 
               title: { 
                 display: true, 
                 text: 'Obrana (xGA) - méně je lépe →',
@@ -1346,7 +1334,7 @@ function renderScatterChart() {
               } 
             },
             y: { 
-              min: 0, // Začátek od nuly
+              min: 0, 
               title: { 
                 display: true, 
                 text: 'Útok (xG) - více je lépe',
