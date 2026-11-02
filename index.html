@@ -1802,7 +1802,9 @@ function renderPrepTab(opp, matches) {
       if (dnaContainer) {
           dnaContainer.innerHTML = `
               ${renderDnaBar('Držení míče [%]', dnaOpp.poss, dnaLg.poss, false, 35, 65)}
+              ${renderDnaBar('Délka přihrávky [m]', dnaOpp.passLen, dnaLg.passLen, false, 15, 25)}
               ${renderDnaBar('Podíl dlouhých přihrávek [%]', dnaOpp.long, dnaLg.long, false, 5, 25)}
+              ${renderDnaBar('Odkopy (Clearances)', dnaOpp.clearances, dnaLg.clearances, false, 5, 30)}
               ${renderDnaBar('Intenzita presinku [PPDA - méně je víc]', dnaOpp.ppda, dnaLg.ppda, true, 4, 16)}
               ${renderDnaBar('Centry do vápna', dnaOpp.crosses, dnaLg.crosses, false, 5, 25)}
           `;
