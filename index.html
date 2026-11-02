@@ -1006,24 +1006,22 @@ function updateConceptArea() {
       document.getElementById('hero-xgdiff').innerText = (avgXg - avgXga > 0 ? '+' : '') + (avgXg - avgXga).toFixed(2);
       document.getElementById('hero-ppda').innerText = avgPpda.toFixed(1);
     }*/
-   function renderHeroStats() {
+function renderHeroStats() {
       const container = document.getElementById('hero-stats-container'); 
       if (!container) return;
       const me = CONFIG.primaryTeam;
 
-      // Chytrá funkce pro průměr nezávisle na počtu zápasů
-      const calcMetricAvg = (teamName, possibleKeys) => {
+      // Nyní hledáme VÝHRADNĚ originální klíč z CSV (např. 'xG'). 
+      // Pokud chybí, kód ho čistě přeskočí a neničí jmenovatele.
+      const calcMetricAvg = (teamName, key) => {
         let sum = 0, count = 0;
         MATCHES.forEach(m => {
           if (teamName === 'LIGA' || m.team === teamName) {
-            for (let k of possibleKeys) {
-              if (m[k] !== undefined && m[k] !== null && m[k] !== '') {
-                let v = parseFloat(m[k].toString().replace(',', '.'));
-                if (!isNaN(v)) {
-                  sum += v;
-                  count++;
-                  break;
-                }
+            if (m[key] !== undefined && m[key] !== null && m[key] !== '') {
+              let v = parseFloat(m[key].toString().replace(',', '.'));
+              if (!isNaN(v)) {
+                sum += v;
+                count++;
               }
             }
           }
@@ -1031,18 +1029,19 @@ function updateConceptArea() {
         return count > 0 ? sum / count : 0;
       };
 
+      // Využíváme naprosto přesné klíče z Koncepce/DNA
       const myAvg = {
-        xg: calcMetricAvg(me, ['xg', 'xG', 'H']),
-        xga: calcMetricAvg(me, ['xga', 'xGA', 'Goals against', 'BI']),
-        possession: calcMetricAvg(me, ['possession', 'Possession, %', 'O']),
-        ppda: calcMetricAvg(me, ['ppda', 'PPDA', 'DE'])
+        xg: calcMetricAvg(me, 'xG'),
+        xga: calcMetricAvg(me, 'xGA'),
+        possession: calcMetricAvg(me, 'Possession %'),
+        ppda: calcMetricAvg(me, 'PPDA')
       };
 
       const leagueAvg = {
-        xg: calcMetricAvg('LIGA', ['xg', 'xG', 'H']),
-        xga: calcMetricAvg('LIGA', ['xga', 'xGA', 'Goals against', 'BI']),
-        possession: calcMetricAvg('LIGA', ['possession', 'Possession, %', 'O']),
-        ppda: calcMetricAvg('LIGA', ['ppda', 'PPDA', 'DE'])
+        xg: calcMetricAvg('LIGA', 'xG'),
+        xga: calcMetricAvg('LIGA', 'xGA'),
+        possession: calcMetricAvg('LIGA', 'Possession %'),
+        ppda: calcMetricAvg('LIGA', 'PPDA')
       };
 
       const buildCard = (title, valMe, valLeague, isDefenseMetric, isPercentage = false) => {
@@ -1263,18 +1262,16 @@ function renderScatterChart() {
       MATCHES.forEach(m => {
         if (!teams[m.team]) teams[m.team] = { xgSum: 0, xgCount: 0, xgaSum: 0, xgaCount: 0 };
         
-        // Započítáme xG jen když existuje
-        let xgVal = parseFloat(m.xg);
-        if (!isNaN(xgVal) && xgVal > 0) {
-            teams[m.team].xgSum += xgVal;
-            teams[m.team].xgCount++;
+        // Započítá xG jen z existujících originálních dat
+        if (m['xG'] !== undefined && m['xG'] !== '') {
+            let v = parseFloat(m['xG'].toString().replace(',', '.'));
+            if (!isNaN(v)) { teams[m.team].xgSum += v; teams[m.team].xgCount++; }
         }
         
-        // Započítáme xGA jen když existuje
-        let xgaVal = parseFloat(m.xga);
-        if (!isNaN(xgaVal) && xgaVal > 0) {
-            teams[m.team].xgaSum += xgaVal;
-            teams[m.team].xgaCount++;
+        // Započítá xGA jen z existujících originálních dat
+        if (m['xGA'] !== undefined && m['xGA'] !== '') {
+            let v = parseFloat(m['xGA'].toString().replace(',', '.'));
+            if (!isNaN(v)) { teams[m.team].xgaSum += v; teams[m.team].xgaCount++; }
         }
       });
 
@@ -1287,9 +1284,10 @@ function renderScatterChart() {
           x: parseFloat(avgXga.toFixed(2)),
           y: parseFloat(avgXg.toFixed(2)),
           isMe: t === CONFIG.primaryTeam,
-          isOpponent: t === opp
+          isOpponent: t === opp,
+          valid: teams[t].xgCount > 0 || teams[t].xgaCount > 0
         };
-      }).filter(d => d.x > 0 || d.y > 0); // Skryjeme týmy, co nemají žádná data
+      }).filter(d => d.valid); // Vykreslí tým jen pokud má alespoň jeden platný údaj
 
       const ctx = document.getElementById('scatterChart');
       if(charts.scatter) charts.scatter.destroy();
