@@ -1480,7 +1480,7 @@ function renderEvolutionTab() {
             
             // AIRBAG 3: Převod formace na text, aby fungoval .split()
             const rawScheme = m['Scheme'] ? String(m['Scheme']) : '-';
-            const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
+            const formace = rawScheme !== '-' ? rawScheme.split('(')[0].trim() : '-';
             
             return `
               <tr class="hover:bg-gray-50">
@@ -1528,50 +1528,51 @@ function renderEvolutionTab() {
         console.warn("Kritická chyba v renderEvolutionTab:", error);
       }
     }
-    function renderOpponentMatchesTable() {
-  try {
-    const oppSelect = document.getElementById('global-opponent');
-    if (!oppSelect || !oppSelect.value) return;
-    
-    const oppName = oppSelect.value;
-    
-    const oppMatches = MATCHES.filter(m => m.team === oppName)
-        .sort((a, b) => {
-            const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
-            const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
-            return new Date(dateA) - new Date(dateB);
+function renderOpponentMatchesTable() {
+      try {
+        const oppSelect = document.getElementById('global-opponent');
+        if (!oppSelect || !oppSelect.value) return;
+        
+        const oppName = oppSelect.value;
+        
+        const oppMatches = MATCHES.filter(m => m.team === oppName).sort((a,b) => {
+          const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
+          const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
+          return new Date(dateA) - new Date(dateB);
         });
 
-    const tbody = document.getElementById('opponent-matches-body');
-    if (tbody) {
-        tbody.innerHTML = [...oppMatches].reverse().map(m => {
-            const xg = parseFloat(m.xg) || 0;
-            const xga = parseFloat(m.xga) || 0;
+        const tbody = document.getElementById('opponent-matches-body');
+        if (tbody) {
+          tbody.innerHTML = [...oppMatches].reverse().map(m => {
+            const xg = Number(m.xg) || 0;
+            const xga = Number(m.xga) || 0;
+            const ppda = Number(m.ppda) || 0;
             const diff = (xg - xga).toFixed(2);
-            const vsTeam = m.opponent || 'Neznámý soupeř';
             
-            // BEZPEČNÁ FORMACE
+            // OPRAVA FORMACE: Odsekneme to až u závorky a smažeme přebytečné mezery na konci (.trim)
             const rawScheme = m['Scheme'] ? String(m['Scheme']) : '-';
-            const formace = rawScheme !== '-' ? rawScheme.split(' ')[0] : '-';
+            const formace = rawScheme !== '-' ? rawScheme.split('(')[0].trim() : '-';
 
             return `
               <tr class="hover:bg-gray-50 border-b last:border-0">
                 <td class="py-2 px-3 text-gray-500">${m.date || '-'}</td>
-                <td class="py-2 px-3 font-bold">${vsTeam}</td>
+                <td class="py-2 px-3 font-bold">${m.opponent || '-'}</td>
                 <td class="py-2 px-2 text-center text-gray-400">${m.isHome ? 'Doma' : 'Venku'}</td>
                 <td class="py-2 px-2 text-center font-bold">${m.score || '-:-'}</td>
                 <td class="py-2 px-2 text-center text-indigo-700 font-bold tabular-nums">${formace}</td>
                 <td class="py-2 px-2 text-right tabular-nums">${xg.toFixed(2)}</td>
                 <td class="py-2 px-2 text-right text-gray-400 tabular-nums">${xga.toFixed(2)}</td>
                 <td class="py-2 px-2 text-right font-bold tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-red-600'}">${diff >= 0 ? '+'+diff : diff}</td>
+                <td class="py-2 px-2 text-right tabular-nums">${m.shots || 0}</td>
+                <td class="py-2 px-2 text-right text-brand-gold tabular-nums">${ppda.toFixed(1)}</td>
               </tr>
             `;
-        }).join('');
+          }).join('');
+        }
+      } catch (error) {
+        console.warn("Kritická chyba v renderOpponentMatchesTable:", error);
+      }
     }
-  } catch (err) {
-    console.error("Chyba při kreslení tabulky soupeře:", err);
-  }
-}
     function updateOpponentViews() {
       const opp = document.getElementById('global-opponent').value;
       
