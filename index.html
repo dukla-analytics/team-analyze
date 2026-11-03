@@ -549,7 +549,34 @@
     let currentSort = { col: null, desc: null };
 
     let LEAGUE_AVG = { xg: 0, xga: 0, possession: 0, ppda: 0 };
+// Nový prázdný zásobník čistě pro data z FAČRu
+    let FACR_MATCHES = []; 
 
+    // Překladový slovník FAČR kód -> Wyscout název
+    const FACR_KODY = {
+      "1060201": "Dukla Praha U19",
+      "1070041": "Sparta Praha U19",
+      "10A0261": "Slavia Praha U19",
+      "3110761": "České Budějovice U19",
+      "5320811": "Pardubice U19",
+      "8030461": "Karviná U19",
+      "8050861": "Opava U19",
+      "5210551": "Hradec Králové U19",
+      "8060671": "Baník Ostrava U19",
+      "7220811": "Slovácko U19",
+      "3230351": "Viktoria Plzeň U19",
+      "7240971": "Zlín U19",
+      "4260531": "Teplice U19",
+      "7120821": "Sigma Olomouc U19",
+      "2070601": "Mladá Boleslav U19",
+      "6220471": "Zbrojovka Brno U19"
+    };
+
+    // Chytřejší funkce, která kód očistí od neviditelných mezer a vrátí správný název
+    const getTeamName = (kod) => {
+        let cistyKod = String(kod).trim();
+        return FACR_KODY[cistyKod] || cistyKod; // Pokud kód nezná, vypíše číslo, ať hned vidíš chybu
+    };
     // Připravíme si prázdné proměnné
 let stats = {
   matchesCount: 0,
@@ -681,9 +708,20 @@ if (stats.matchesCount > 0) {
             initApp();
           } else {
             console.warn("Chyba G-Sheets, pouštím MOCK data.");
-            MATCHES = getMockData();
+            MATCHES = getMockData();}
+          // 2. JAKMILE JE WYSCOUT HOTOVÝ, STÁHNEME FAČR DATA
+          // (Zde vlož URL na tvé nové CSV s kódy týmů a výsledky)
+          const facrCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxM778YVwjtCfQAaVDSoCylfIU7dSye9vR8lUwi9Fp7pmXJxb7F-OXM-w5rQL1e4PY-GoceT4_gRcn/pubhtml?gid=506829008&single=true"; 
+          
+          Papa.parse(facrCsvUrl, {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: function(resFacr) {
+              FACR_MATCHES = resFacr.data;}
             initApp();
-          }
+          
         },
         error: () => { MATCHES = getMockData(); initApp(); }
       });
@@ -994,18 +1032,6 @@ function updateConceptArea() {
       LEAGUE_AVG = { xg: xg/count, xga: xga/count, ppda: ppda/count };
     }
 
-    /*function renderHeroStats() {
-      const myMatches = MATCHES.filter(m => m.team === CONFIG.primaryTeam);
-      if(!myMatches.length) return;
-      const avgXg = myMatches.reduce((s,m) => s+m.xg, 0) / myMatches.length;
-      const avgXga = myMatches.reduce((s,m) => s+m.xga, 0) / myMatches.length;
-      const avgPpda = myMatches.reduce((s,m) => s+m.ppda, 0) / myMatches.length;
-      
-      document.getElementById('hero-xg').innerText = avgXg.toFixed(2);
-      document.getElementById('hero-xga').innerText = avgXga.toFixed(2);
-      document.getElementById('hero-xgdiff').innerText = (avgXg - avgXga > 0 ? '+' : '') + (avgXg - avgXga).toFixed(2);
-      document.getElementById('hero-ppda').innerText = avgPpda.toFixed(1);
-    }*/
 function renderHeroStats() {
       const container = document.getElementById('hero-stats-container'); 
       if (!container) return;
@@ -1080,7 +1106,7 @@ function renderHeroStats() {
         </div>
       `;
     }
-function renderLeagueTable() {
+/*function renderLeagueTable() {
       const opp = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : '';
       const teams = {};
       MATCHES.forEach(m => {
@@ -1129,7 +1155,93 @@ function renderLeagueTable() {
           </tr>
         `;
       }).join('');
-    }
+    }*/
+    function renderLeagueTable() {
+  const opp = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : '';
+  const teams = {};
+
+  // 1. Předvyplníme tabulku všemi týmy, aby tam nechyběl někdo, kdo ještě nehrál
+  Object.values(FACR_KODY).forEach(name => {
+    teams[name] = { pts: 0, gf: 0, ga: 0, w: 0, d: 0, l: 0, z: 0 };
+  });
+
+  // 2. Zpracování stažených FAČR dat
+  FACR_MATCHES.forEach(m => {
+    // Pokud chybí skóre nebo neobsahuje dvojtečku, zápas se ještě nehrál -> přeskočit
+    if (!m['Score'] || !String(m['Score']).includes(':')) return;
+
+    // Překlad přes slovník (zvládne kódy i hotová jména)
+    const homeName = getTeamName(m['Home']);
+    const awayName = getTeamName(m['Away']);
+    
+    // Očištění skóre od mezer "4 : 3" -> "4:3" a odříznutí poločasů v závorce (pokud by tam byly)
+    const rawScore = String(m['Score']).split('(')[0]; 
+    const cleanScore = rawScore.replace(/[^\d:]/g, ''); // Smaže vše kromě čísel a dvojtečky
+    const [hgStr, agStr] = cleanScore.split(':');
+    
+    const hg = parseInt(hgStr);
+    const ag = parseInt(agStr);
+
+    if (isNaN(hg) || isNaN(ag)) return; // Bezpečnostní pojistka
+
+    // Založení týmu, kdyby náhodou chyběl ve slovníku
+    if (!teams[homeName]) teams[homeName] = { pts: 0, gf: 0, ga: 0, w: 0, d: 0, l: 0, z: 0 };
+    if (!teams[awayName]) teams[awayName] = { pts: 0, gf: 0, ga: 0, w: 0, d: 0, l: 0, z: 0 };
+
+    // Započítání domácím
+    teams[homeName].z++;
+    teams[homeName].gf += hg;
+    teams[homeName].ga += ag;
+    if (hg > ag) { teams[homeName].pts += 3; teams[homeName].w++; }
+    else if (hg === ag) { teams[homeName].pts += 1; teams[homeName].d++; }
+    else { teams[homeName].l++; }
+
+    // Započítání hostům
+    teams[awayName].z++;
+    teams[awayName].gf += ag;
+    teams[awayName].ga += hg;
+    if (ag > hg) { teams[awayName].pts += 3; teams[awayName].w++; }
+    else if (ag === hg) { teams[awayName].pts += 1; teams[awayName].d++; }
+    else { teams[awayName].l++; }
+  });
+
+  // 3. Seřazení podle bodů, následně podle rozdílu skóre
+  const sorted = Object.entries(teams).sort((a,b) => {
+    if(b[1].pts !== a[1].pts) return b[1].pts - a[1].pts;
+    return (b[1].gf - b[1].ga) - (a[1].gf - a[1].ga);
+  });
+
+  // 4. Vykreslení tabulky
+  document.getElementById('league-table-body').innerHTML = sorted.map((s,i) => {
+    const isMe = s[0] === CONFIG.primaryTeam;
+    const isOpp = s[0] === opp;
+    
+    let rowClass = 'hover:bg-gray-50';
+    let nameClass = 'text-gray-900';
+
+    if (isMe) { rowClass = 'bg-amber-50 font-bold border-l-4 border-brand-gold'; nameClass = 'text-brand-gold'; } 
+    else if (isOpp) { rowClass = 'bg-red-50 font-bold border-l-4 border-brand-red'; nameClass = 'text-brand-red'; }
+
+    const gd = s[1].gf - s[1].ga;
+    const ppg = s[1].z > 0 ? (s[1].pts / s[1].z).toFixed(2) : '0.00';
+    const gdSign = gd > 0 ? '+' : '';
+    const gdColor = gd > 0 ? 'text-green-600' : (gd < 0 ? 'text-red-600' : 'text-gray-400');
+
+    return `
+      <tr class="${rowClass}">
+        <td class="py-2 px-2 flex gap-1.5 items-center"><span class="w-4 inline-block text-gray-400 text-xs font-normal">${i+1}.</span> <span class="${nameClass}">${s[0]}</span></td>
+        <td class="py-2 px-1 text-center">${s[1].z}</td>
+        <td class="py-2 px-1 text-center text-gray-400">${s[1].w}</td>
+        <td class="py-2 px-1 text-center text-gray-400">${s[1].d}</td>
+        <td class="py-2 px-1 text-center text-gray-400">${s[1].l}</td>
+        <td class="py-2 px-2 text-center">${s[1].gf}:${s[1].ga}</td>
+        <td class="py-2 px-1 text-center font-bold ${gdColor}">${gdSign}${gd}</td>
+        <td class="py-2 px-2 text-center font-bold text-gray-900">${s[1].pts}</td>
+        <td class="py-2 px-1 text-center text-xs text-gray-500 font-mono">${ppg}</td>
+      </tr>
+    `;
+  }).join('');
+}
 
     function sortTableBy(col) {
       // Pokud kliknu na stejný sloupec, otočím směr řazení
