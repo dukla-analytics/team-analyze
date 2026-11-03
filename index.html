@@ -2351,6 +2351,7 @@ function renderConceptProfile() {
                 datasets: [
                     {
                         data: currentPercentiles,
+                      z: 10,
                         backgroundColor: bgColors, borderColor: bdColors, borderWidth: 1.5,
                         datalabels: {
                             labels: {
@@ -2365,6 +2366,7 @@ function renderConceptProfile() {
                     },
                     {
                         data: Array(16).fill(100),
+                      z: 0,
                         backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(0,0,0,0)', borderWidth: 0,
                         datalabels: {
                             labels: {
