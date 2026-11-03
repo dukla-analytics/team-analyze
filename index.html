@@ -697,35 +697,49 @@ if (stats.matchesCount > 0) {
 
     // Inicializace
     window.addEventListener('DOMContentLoaded', () => {
-      Papa.parse(CONFIG.csvUrl, {
+  Papa.parse(CONFIG.csvUrl, {
+    download: true,
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    complete: function(res) {
+      // 1. Zpracujeme Wyscout data
+      if (res.data && res.data.length > 0) {
+        MATCHES = normalizeData(res.data);
+      } else {
+        console.warn("Chyba G-Sheets, pouštím MOCK data.");
+        MATCHES = getMockData();
+      }
+      
+      // POZOR: Zde už nesmí být initApp(). Musíme počkat na FAČR!
+
+      // 2. URL pro FAČR (Upraveno z pubhtml na čisté CSV stažení)
+      const facrCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxM778YVwjtCfQAaVDSoCylfIU7dSye9vR8lUwi9Fp7pmXJxb7F-OXM-w5rQL1e4PY-GoceT4_gRcn/pub?gid=506829008&single=true&output=csv"; 
+      
+      Papa.parse(facrCsvUrl, {
         download: true,
         header: true,
         dynamicTyping: true,
         skipEmptyLines: true,
-        complete: function(res) {
-          if (res.data && res.data.length > 0) {
-            MATCHES = normalizeData(res.data);
-            initApp();
-          } else {
-            console.warn("Chyba G-Sheets, pouštím MOCK data.");
-            MATCHES = getMockData();}
-          // 2. JAKMILE JE WYSCOUT HOTOVÝ, STÁHNEME FAČR DATA
-          // (Zde vlož URL na tvé nové CSV s kódy týmů a výsledky)
-          const facrCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxM778YVwjtCfQAaVDSoCylfIU7dSye9vR8lUwi9Fp7pmXJxb7F-OXM-w5rQL1e4PY-GoceT4_gRcn/pubhtml?gid=506829008&single=true"; 
+        complete: function(resFacr) {
+          // Data úspěšně načtena
+          FACR_MATCHES = resFacr.data;
           
-          Papa.parse(facrCsvUrl, {
-            download: true,
-            header: true,
-            dynamicTyping: true,
-            skipEmptyLines: true,
-            complete: function(resFacr) {
-              FACR_MATCHES = resFacr.data;}
-            initApp();
-          
+          // 3. AŽ TEĎ spouštíme aplikaci, protože máme oboje data
+          initApp(); 
         },
-        error: () => { MATCHES = getMockData(); initApp(); }
+        error: function(err) {
+          console.error("Chyba při stahování FAČR dat:", err);
+          initApp(); // Spustíme aplikaci aspoň s Wyscoutem, kdyby stahování FAČRu selhalo
+        }
       });
-    });
+    },
+    error: () => { 
+      MATCHES = getMockData(); 
+      initApp(); 
+    }
+  });
+});
     // PŘESNÉ ROZDĚLENÍ METRIK PODLE VAŠÍ KONCEPCE
     const KONCEPCE = {
       "1": ["Progressive passes", "Progressive passes%", "Forward passes", "Forward passes%", "Passes to final third", "Passes to final third%", "Smart passes", "Smart passes%", "Deep completed passes", "Average pass length"],
