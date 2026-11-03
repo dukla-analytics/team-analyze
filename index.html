@@ -2351,7 +2351,7 @@ function renderConceptProfile() {
                 datasets: [
                     {
                         data: currentPercentiles,
-                      z: 10,
+                      order: 2,
                         backgroundColor: bgColors, borderColor: bdColors, borderWidth: 1.5,
                         datalabels: {
                             labels: {
@@ -2366,7 +2366,7 @@ function renderConceptProfile() {
                     },
                     {
                         data: Array(16).fill(100),
-                      z: 0,
+                      order: 1,
                         backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(0,0,0,0)', borderWidth: 0,
                         datalabels: {
                             labels: {
@@ -2392,7 +2392,7 @@ function renderConceptProfile() {
             },
             options: {
                 responsive: true, maintainAspectRatio: false, layout: { padding: 50 },interaction: {
-                    mode: 'nearest',
+                    mode: 'index',
                     intersect: true
                 },
                 scales: { r: { min: 0, max: 100, ticks: { display: false } } },
