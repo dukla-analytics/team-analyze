@@ -431,7 +431,7 @@
     </div>
     
     <!-- Wrapper s overflow-x pro menší obrazovky -->
-    <div class="flex overflow-x-auto pb-4 gap-6 snap-x" id="scouting-wrapper">
+    <div class="flex overflow-x-auto pb-4 snap-x" id="scouting-wrapper">
         
         <!-- LEVÁ STRANA: Původní hráč -->
         <div id="scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
@@ -461,7 +461,7 @@
         </div>
 
         <!-- PRAVÁ STRANA: Hráč pro porovnání (Základně skryto) -->
-        <div id="scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out lg:border-l lg:border-gray-200 lg:pl-6">
+        <div id="scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
             
             <div class="flex flex-col sm:flex-row gap-2 mb-6">
                 <!-- Výběr TÝMU pro porovnání -->
@@ -524,7 +524,7 @@
     </div>
     
     <!-- Wrapper s overflow-x pro menší obrazovky -->
-    <div class="flex overflow-x-auto pb-4 gap-6 snap-x" id="our-scouting-wrapper">
+    <div class="flex overflow-x-auto pb-4 snap-x" id="our-scouting-wrapper">
         
         <!-- LEVÁ STRANA: Náš hráč -->
         <div id="our-scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
@@ -554,7 +554,7 @@
         </div>
 
         <!-- PRAVÁ STRANA: Hráč pro porovnání (Základně skryto) -->
-        <div id="our-scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out lg:border-l lg:border-gray-200 lg:pl-6">
+        <div id="our-scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
             
             <div class="flex flex-col sm:flex-row gap-2 mb-6">
                 <!-- Výběr TÝMU pro porovnání -->
@@ -593,7 +593,7 @@
         
       <!-- Zápasy Dukly -->
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Zápasy Dukly Praha</h3>
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Zápasy domácího týmu</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left text-gray-700">
             <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
@@ -1755,29 +1755,29 @@ function renderTriptychCharts() {
         });
     }
 
-function renderOpponentMatchesTable() {
+function renderTeamMatchesTable(teamName, tbodyId) {
       try {
-        const oppSelect = document.getElementById('global-opponent');
-        if (!oppSelect || !oppSelect.value) return;
+        if (!teamName) return;
         
-        const oppName = oppSelect.value;
-        
-        const oppMatches = MATCHES.filter(m => m.team === oppName).sort((a,b) => {
+        // Seřadíme zápasy chronologicky podle data
+        const matches = MATCHES.filter(m => m.team === teamName).sort((a,b) => {
           const dateA = a.date ? String(a.date).split('.').reverse().join('-') : '2000-01-01';
           const dateB = b.date ? String(b.date).split('.').reverse().join('-') : '2000-01-01';
           return new Date(dateA) - new Date(dateB);
         });
-
-        const tbody = document.getElementById('opponent-matches-body');
+        
+        const tbody = document.getElementById(tbodyId);
         if (tbody) {
-          tbody.innerHTML = [...oppMatches].reverse().map(m => {
+          tbody.innerHTML = [...matches].reverse().map(m => {
             const xg = Number(m.xg) || 0;
             const xga = Number(m.xga) || 0;
             const ppda = Number(m.ppda) || 0;
             const diff = (xg - xga).toFixed(2);
             
-const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
-
+            // Bezpečné parsování formace
+            const rawScheme = m['Scheme'] ? String(m['Scheme']) : (m['Formation'] ? String(m['Formation']) : '-');
+            const formace = rawScheme !== '-' ? rawScheme.split('(')[0].trim() : '-';
+            
             return `
               <tr class="hover:bg-gray-50 border-b last:border-0">
                 <td class="py-2 px-3 text-gray-500">${m.date || '-'}</td>
@@ -1795,7 +1795,7 @@ const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
           }).join('');
         }
       } catch (error) {
-        console.warn("Kritická chyba v renderOpponentMatchesTable:", error);
+        console.warn("Chyba při kreslení tabulky pro " + teamName + ":", error);
       }
     }
     function updateOpponentViews() {
@@ -1851,7 +1851,6 @@ const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
       renderH2H();
       renderForm();
       renderPizzaChart();
-      renderOpponentMatchesTable();
       renderTriptychCharts();
       setTimeout(() => {
         if (typeof renderConceptProfile === 'function') {
@@ -1866,6 +1865,8 @@ const formace = m['Scheme'] ? String(m['Scheme']) : 'NIC';
       const oppCard = document.getElementById('opponent-player-card');
       if (oppCard) oppCard.style.display = 'none';
       if (charts['opponent-pizza-canvas']) charts['opponent-pizza-canvas'].destroy();
+      const oppName = document.getElementById('global-opponent').value;
+      renderTeamMatchesTable(oppName, 'opponent-matches-body');
   }
     }
     function updateMyTeam() {
@@ -2506,28 +2507,30 @@ function renderConceptProfile() {
 // =========================================================
     // UNIVERZÁLNÍ MODUL POROVNÁNÍ HRÁČŮ (Pro obě záložky)
     // =========================================================
-    function toggleCompareMode(prefix = '') {
+function toggleCompareMode(prefix = '') {
         const isChecked = document.getElementById(prefix + 'compare-toggle').checked;
         const leftSide = document.getElementById(prefix + 'scouting-left');
         const rightSide = document.getElementById(prefix + 'scouting-right');
+        const wrapper = document.getElementById(prefix + 'scouting-wrapper');
         
         if (isChecked) {
-            // ZAPNUTO: Rozdělení obrazovky (Opravená CSS syntaxe s podtržítky pro mezery)
+            // ZAPNUTO: Rozdělení obrazovky, přidání mezery a dělící čáry
+            if (wrapper) wrapper.classList.add('gap-6');
+            
             leftSide.classList.remove('w-full', 'min-w-full');
             leftSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
             
             rightSide.classList.remove('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
-            rightSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100');
+            // ZDE JE ZMĚNA: Dynamicky přidáváme padding a border (lg:border-l, lg:border-gray-200, lg:pl-6)
+            rightSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
 
             const teamSelect = document.getElementById(prefix + 'compare-team-select');
             if (teamSelect && teamSelect.options.length <= 1) {
-                // CHYTRÝ FILTR: Spolehlivě vytáhne jen týmy z dané kategorie (např. U19)
                 const currentCat = CONFIG.primaryTeam.includes('U17') ? 'U17' : (CONFIG.primaryTeam.includes('U15') ? 'U15' : 'U19');
                 const validTeams = [...new Set(PLAYERS_DATA.filter(p => p.Kategorie && p.Kategorie.trim() === currentCat).map(p => p.Team))].sort();
                 
                 validTeams.forEach(t => teamSelect.add(new Option(t, t)));
                 
-                // PŘEDVYPLNĚNÍ: U soupeře předvyplní Duklu, u Dukly předvyplní zvoleného soupeře
                 const targetPreFill = prefix === '' ? CONFIG.primaryTeam : (document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : null);
                 
                 if (targetPreFill && validTeams.includes(targetPreFill)) {
@@ -2536,12 +2539,15 @@ function renderConceptProfile() {
                 }
             }
         } else {
-            // VYPNUTO: Návrat do plné šířky
+            // VYPNUTO: Návrat do plné šířky a smazání úplně všeho navíc
+            if (wrapper) wrapper.classList.remove('gap-6');
+            
             leftSide.classList.add('w-full', 'min-w-full');
             leftSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
             
             rightSide.classList.add('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
-            rightSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100');
+            // ZDE JE ZMĚNA: Dynamicky mažeme i ten neviditelný okraj
+            rightSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
         }
     }
 
@@ -2630,6 +2636,7 @@ function renderConceptProfile() {
       safeRun(renderConceptProfile, 'renderConceptProfile');
       safeRun(loadPlayersData,'LoadPlayersData');
       safeRun(renderPizzaChart,'renderPizzaChart');
+      safeRun(() => renderTeamMatchesTable(CONFIG.primaryTeam, 'club-matches-body'), 'renderTeamMatchesTable');
 
     }
     function getMockData() {
