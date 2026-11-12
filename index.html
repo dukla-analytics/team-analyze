@@ -88,6 +88,7 @@
         <div class="text-sm font-bold text-gray-800">Sezona 2026/27</div>
         <div class="text-xs text-gray-500 uppercase tracking-wide">Data k <span id="snapshot-date" class="font-bold text-gray-700">Načítám...</span></div>
       </div>
+      
       <!-- NOVÝ PŘEPÍNAČ: Forma (Rolling 5 zápasů) -->
       <div class="bg-blue-50 border border-blue-200 rounded p-2 flex flex-col mr-2 justify-center">
         <label class="relative inline-flex items-center cursor-pointer">
@@ -257,7 +258,10 @@
     </section>
     <!-- ========== ZÁLOŽKA 2: VLASTNÍ VÝVOJ ========== -->
     <section id="tab-evolution" class="tab-content hidden space-y-6">
-      
+      <!-- NOVÝ VELKÝ TRACKER POKRYTÍ DAT -->
+      <div id="big-data-tracker" class="w-full bg-white border-2 rounded-lg shadow-sm p-6 flex flex-col md:flex-row gap-8 items-center transition-all duration-300">
+        <!-- Zde se automaticky z JS vygeneruje velký progress bar a seznam chybějících zápasů -->
+      </div>
       <div class="border-b border-gray-300 pb-2">
         <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">VLASTNÍ VÝVOJ</p>
         <h2 class="text-2xl font-black text-gray-900 tracking-tight">Jak si vedeme?</h2>
@@ -350,7 +354,31 @@
           </div>
         </div>
       </div>
-
+<!-- NOVÝ MODUL: HYBRIDNÍ OČEKÁVANÉ BODY (xPTS) -->
+      <div class="mt-8 bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <div class="mb-6">
+          <h3 class="text-xl font-black text-gray-900 tracking-tight">Tabulka Expected Points</h3>
+          <p class="text-sm text-gray-500 mt-1">Počítáno skrz Poissonovo rozdělení z xG dat. Kde chybí data, počítá se realita.</p>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-sans">
+            <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="py-3 px-3">Tým</th>
+                <th class="py-3 px-2 text-center" title="Celkem odehraných zápasů">Z</th>
+                <th class="py-3 px-2 text-center" title="Kolik z nich bylo počítáno přes xG data">Data</th>
+                <th class="py-3 px-2 text-center text-gray-900">Skutečné body</th>
+                <th class="py-3 px-2 text-center text-indigo-700 font-bold bg-indigo-50/50">xPts</th>
+                <th class="py-3 px-2 text-center text-gray-600 rounded-tr" title="Skutečné body minus xPts">Rozdíl</th>
+              </tr>
+            </thead>
+            <tbody id="hybrid-xpts-body" class="divide-y divide-gray-100">
+              <!-- JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- ========== ZÁLOŽKA 3: PŘÍPRAVA NA SOUPEŘE ========== -->
@@ -383,7 +411,7 @@
         </div>
       </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         
         <!-- Taktická DNA -->
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col">
@@ -393,27 +421,37 @@
             <div class="text-xs text-gray-400 italic">Zvolte soupeře v hlavičce...</div>
           </div>
         </div>
-
+        <div class="flex flex-col gap-6 h-full">
         <!-- Liší se doma a venku -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col">
-          <h3 class="text-lg font-bold text-gray-900 mb-1">Liší se doma a venku?</h3>
-          <p class="text-xs text-gray-500 mb-4">Průměry na dostupný zápas; rozdílní soupeři mohou ovlivnit rozdíl.</p>
-          <table class="w-full text-sm text-left">
-            <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="py-2 px-2">Hřiště</th>
-                <th class="py-2 px-2 text-center">Z</th>
-                <th class="py-2 px-2 text-right">xG</th>
-                <th class="py-2 px-2 text-right">xGA</th>
-                <th class="py-2 px-2 text-right">Střely</th>
-                <th class="py-2 px-2 text-right">PPDA</th>
-              </tr>
-            </thead>
+          <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col">
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Liší se doma a venku?</h3>
+            <p class="text-xs text-gray-500 mb-4">Průměry na dostupný zápas; rozdílní soupeři mohou ovlivnit rozdíl.</p>
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="py-2 px-2">Hřiště</th>
+                  <th class="py-2 px-2 text-center">Z</th>
+                  <th class="py-2 px-2 text-right">xG</th>
+                  <th class="py-2 px-2 text-right">xGA</th>
+                  <th class="py-2 px-2 text-right">Střely</th>
+                  <th class="py-2 px-2 text-right">PPDA</th>
+                </tr>
+              </thead>
             <tbody id="opp-splits-body" class="divide-y divide-gray-100 font-mono text-gray-700"></tbody>
-          </table>
+            </table>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex-1">
+            <h3 class="text-md font-bold text-gray-900 flex items-center gap-2 mb-1">
+            <span class="text-lg">♟️</span> Výkony podle rozestavení
+            </h3>
+            <p class="text-xs text-gray-500 mb-3">Statistiky seskupené podle primární formace.</p>
+            <div id="opponent-formations-container" class="overflow-x-auto">
+            <!-- Sem naše JS funkce z předchozího kroku vygeneruje tabulku -->
+            </div>
+          </div>
         </div>
-        
       </div>
+
 <div class="mt-8 border-t border-gray-300 pt-6 space-y-6">
   <h2 class="text-2xl font-black text-gray-900 tracking-tight">Skauting: Profil soupeře dle koncepce</h2>
   <div id="concept-profile-container"></div>
@@ -590,7 +628,17 @@
 
     </div>
   </div>
-        
+   <!-- ANALÝZA FORMACÍ (NÁŠ TÝM) -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 mb-6">
+        <h3 class="text-md font-bold text-gray-900 flex items-center gap-2 mb-1">
+          <span class="text-lg">♟️</span> Naše výkony podle rozestavení
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">Srovnání ofenzivní a defenzivní síly v různých herních systémech.</p>
+        <div id="our-formations-container" class="overflow-x-auto">
+          <!-- Vykreslí JS -->
+        </div>
+      </div>
+     
       <!-- Zápasy Dukly -->
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Zápasy domácího týmu</h3>
@@ -1848,10 +1896,12 @@ function renderTeamMatchesTable(teamName, tbodyId) {
       renderMetricsTable();
       renderScatterChart();
       renderHorizontalBarChart();
+      renderBigDataTracker();
       renderH2H();
       renderForm();
       renderPizzaChart();
       renderTriptychCharts();
+      renderHybridXPtsTable();
       setTimeout(() => {
         if (typeof renderConceptProfile === 'function') {
           console.log("Spouštím opožděně karty...");
@@ -1865,9 +1915,10 @@ function renderTeamMatchesTable(teamName, tbodyId) {
       const oppCard = document.getElementById('opponent-player-card');
       if (oppCard) oppCard.style.display = 'none';
       if (charts['opponent-pizza-canvas']) charts['opponent-pizza-canvas'].destroy();
-      const oppName = document.getElementById('global-opponent').value;
-      renderTeamMatchesTable(oppName, 'opponent-matches-body');
-  }
+const oppName = document.getElementById('global-opponent').value;
+          renderTeamMatchesTable(oppName, 'opponent-matches-body');
+          renderFormationAnalysis(oppName, 'opponent-formations-container'), 'renderFormationAnalysisOpponent';
+      }
     }
     function updateMyTeam() {
       const selectedTeam = document.getElementById('global-myteam').value;
@@ -2605,6 +2656,318 @@ function toggleCompareMode(prefix = '') {
         const opp = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : null;
         if(opp) updateOpponentViews();
     }
+    function renderBigDataTracker() {
+      const tracker = document.getElementById('big-data-tracker');
+      if (!tracker) return;
+
+      const myTeam = CONFIG.primaryTeam;
+      const oppSelect = document.getElementById('global-opponent');
+      const oppTeam = oppSelect ? oppSelect.value : '';
+
+      // Nastavíme hlavní obal na Grid (2 sloupce vedle sebe)
+      tracker.className = 'w-full grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-300';
+
+      // Univerzální továrna na šedé karty
+      const buildTeamCard = (teamName, isOpponent) => {
+          if (!teamName) {
+              return `
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 flex flex-col justify-center items-center text-gray-400 h-full min-h-[160px]">
+                    <span class="text-2xl mb-2">🔍</span>
+                    <span class="text-sm font-bold uppercase tracking-wider">Vyberte soupeře v hlavičce</span>
+                </div>`;
+          }
+
+          // 1. Zápasy FAČR
+          const facrPlayed = FACR_MATCHES.filter(m => {
+              if (!m['Score'] || !String(m['Score']).includes(':')) return false;
+              const home = getTeamName(m['Home']);
+              const away = getTeamName(m['Away']);
+              return home === teamName || away === teamName;
+          });
+
+          // 2. Zápasy Wyscout
+          const wyscoutMatches = ALL_MATCHES.filter(m => m.team === teamName);
+
+          // 3. Hledání chybějících
+          let missing = [];
+          facrPlayed.forEach(fm => {
+              const home = getTeamName(fm['Home']);
+              const away = getTeamName(fm['Away']);
+              const isHome = home === teamName;
+              const opp = isHome ? away : home;
+              
+              const found = wyscoutMatches.find(wm => wm.opponent === opp);
+              if (!found) {
+                  missing.push({ opp: opp, isHome: isHome, date: fm['Date'] || '?', score: fm['Score'] });
+              }
+          });
+
+          const total = facrPlayed.length;
+          const have = total - missing.length;
+          const pct = total > 0 ? Math.round((have / total) * 100) : 0;
+          
+          const title = isOpponent ? `Soupeř: ${teamName}` : `Náš tým: ${teamName}`;
+          
+          let html = `
+            <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col shadow-sm">
+                <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-4 border-b border-gray-100 pb-2">${title}</h3>
+                
+                <div class="flex flex-col sm:flex-row gap-6 items-start h-full">
+                    <!-- Levá část karty: Procenta -->
+                    <div class="flex-shrink-0 w-full sm:w-1/3 flex flex-col justify-center">
+                        <div class="text-4xl font-black text-gray-700 leading-none tabular-nums tracking-tighter mb-1">${pct}%</div>
+                        <div class="text-xs font-bold text-gray-400 mb-3 tabular-nums">Dostupných ${have} z ${total} utkání</div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                            <div class="h-full bg-gray-400 transition-all duration-1000 ease-out rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Pravá část karty: Výpis zápasů -->
+                    <div class="flex-1 w-full flex flex-col justify-center min-h-[80px]">
+          `;
+
+          if (missing.length === 0) {
+              html += `
+                <div class="flex items-center gap-3 text-gray-500">
+                    <span class="text-2xl">✨</span>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700">100% datové pokrytí</h4>
+                        <p class="text-[10px] uppercase tracking-wide opacity-80 mt-0.5">Kompletní vzorek z FAČR</p>
+                    </div>
+                </div>`;
+          } else {
+              // Zabaleno do scrollovacího boxu, aby se karta nenafoukla, když chybí 6 zápasů
+              html += `
+                <h4 class="text-[11px] font-bold text-gray-600 mb-2 uppercase tracking-wide">
+                    Chybějící Wyscout data (${missing.length})
+                </h4>
+                <div class="flex flex-col gap-1.5 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
+                    ${missing.map(m => `
+                        <div class="flex justify-between items-center bg-gray-50 border border-gray-100 p-2 rounded">
+                            <div class="flex flex-col leading-tight">
+                                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">${m.date} · ${m.isHome ? 'Doma' : 'Venku'}</span>
+                                <span class="text-xs font-bold text-gray-700 truncate max-w-[120px]" title="${m.opp}">${m.opp.replace(' U19','')}</span>
+                            </div>
+                            <div class="text-[11px] font-bold text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm">
+                                ${m.score}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+              `;
+          }
+          html += `</div></div></div>`;
+          return html;
+      };
+
+      // Vykreslíme obě karty
+      tracker.innerHTML = buildTeamCard(myTeam, false) + buildTeamCard(oppTeam, true);
+    }
+    function renderHybridXPtsTable() {
+      const container = document.getElementById('hybrid-xpts-body');
+      if (!container) return;
+
+      const oppSelect = document.getElementById('global-opponent');
+      const currentOpponent = oppSelect ? oppSelect.value : '';
+
+      let teams = {};
+      Object.values(FACR_KODY).forEach(name => {
+        teams[name] = { z: 0, actualPts: 0, hybridPts: 0, dataMatches: 0 };
+      });
+
+      const poisson = (k, lambda) => {
+          let p = Math.exp(-lambda);
+          for (let i = 1; i <= k; i++) p *= (lambda / i);
+          return p;
+      };
+
+      FACR_MATCHES.forEach(m => {
+        if (!m['Score'] || !String(m['Score']).includes(':')) return;
+
+        const homeName = getTeamName(m['Home']);
+        const awayName = getTeamName(m['Away']);
+        
+        const rawScore = String(m['Score']).split('(')[0]; 
+        const cleanScore = rawScore.replace(/[^\d:]/g, '');
+        const [hgStr, agStr] = cleanScore.split(':');
+        const hg = parseInt(hgStr);
+        const ag = parseInt(agStr);
+        
+        if (isNaN(hg) || isNaN(ag)) return;
+
+        if (!teams[homeName]) teams[homeName] = { z: 0, actualPts: 0, hybridPts: 0, dataMatches: 0 };
+        if (!teams[awayName]) teams[awayName] = { z: 0, actualPts: 0, hybridPts: 0, dataMatches: 0 };
+
+        teams[homeName].z++;
+        teams[awayName].z++;
+
+        let hAct = hg > ag ? 3 : (hg === ag ? 1 : 0);
+        let aAct = ag > hg ? 3 : (hg === ag ? 1 : 0);
+        teams[homeName].actualPts += hAct;
+        teams[awayName].actualPts += aAct;
+
+        const wMatch = ALL_MATCHES.find(wm => wm.team === homeName && wm.opponent === awayName && wm.isHome === 1);
+        
+        if (wMatch && wMatch.xg !== undefined && wMatch.xga !== undefined && wMatch.xg !== null) {
+            let hWinProb = 0, drawProb = 0, aWinProb = 0;
+            
+            for (let h = 0; h <= 5; h++) {
+                for (let a = 0; a <= 5; a++) {
+                    let prob = poisson(h, wMatch.xg) * poisson(a, wMatch.xga);
+                    if (h > a) hWinProb += prob;
+                    else if (h === a) drawProb += prob;
+                    else aWinProb += prob;
+                }
+            }
+            
+            const totalProb = hWinProb + drawProb + aWinProb;
+            const hHyb = ((hWinProb / totalProb) * 3) + ((drawProb / totalProb) * 1);
+            const aHyb = ((aWinProb / totalProb) * 3) + ((drawProb / totalProb) * 1);
+            
+            teams[homeName].hybridPts += hHyb;
+            teams[awayName].hybridPts += aHyb;
+            teams[homeName].dataMatches++;
+            teams[awayName].dataMatches++;
+        } else {
+            teams[homeName].hybridPts += hAct;
+            teams[awayName].hybridPts += aAct;
+        }
+      });
+
+      const sorted = Object.entries(teams).sort((a,b) => b[1].hybridPts - a[1].hybridPts || b[1].actualPts - a[1].actualPts);
+
+      container.innerHTML = sorted.map((s, i) => {
+        const tName = s[0];
+        const d = s[1];
+        if (d.z === 0) return ''; 
+
+        const isMe = tName === CONFIG.primaryTeam;
+        const isOpp = tName === currentOpponent;
+        
+        const diff = d.actualPts - d.hybridPts; 
+        const diffStr = diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+        
+        // Extrémní odchylky lehce podbarvíme pro rychlou orientaci
+        let diffClass = diff >= 2.5 ? 'text-red-600 bg-red-50/50 font-bold' : (diff <= -2.5 ? 'text-emerald-600 bg-emerald-50/50 font-bold' : 'text-gray-500');
+        
+        let rowClass = 'hover:bg-gray-50';
+        let nameClass = 'text-gray-900';
+        
+        if (isMe) {
+            rowClass = 'bg-amber-50 font-bold border-l-4 border-brand-gold';
+            nameClass = 'text-brand-gold';
+        } else if (isOpp) {
+            rowClass = 'bg-slate-100 font-bold border-l-4 border-slate-500';
+            nameClass = 'text-slate-800';
+        }
+
+        return `
+          <tr class="${rowClass} transition-colors">
+            <td class="py-2.5 px-3 flex items-center text-sm">
+                <span class="text-gray-400 w-5 inline-block text-xs font-normal">${i+1}.</span> 
+                <span class="${nameClass}">${tName}</span>
+            </td>
+            <td class="py-2.5 px-2 text-center text-gray-500 tabular-nums">${d.z}</td>
+            <td class="py-2.5 px-2 text-center text-gray-400 text-xs tabular-nums">${d.dataMatches} / ${d.z}</td>
+            <td class="py-2.5 px-2 text-center font-bold text-gray-800 tabular-nums">${d.actualPts}</td>
+            <td class="py-2.5 px-2 text-center font-black text-indigo-700 text-base tabular-nums bg-indigo-50/50">${d.hybridPts.toFixed(1)}</td>
+            <td class="py-2.5 px-2 text-center text-xs tabular-nums ${diffClass} rounded-r">${diffStr}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    function renderFormationAnalysis(teamName, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (!teamName) {
+          container.innerHTML = `<div class="text-sm text-gray-400 italic p-4 text-center">Vyberte tým pro zobrazení formací.</div>`;
+          return;
+      }
+
+      // 1. Získáme všechny zápasy daného týmu (z ALL_MATCHES)
+      const matches = ALL_MATCHES.filter(m => m.team === teamName);
+      
+      // 2. Seskupíme data podle formace
+      let formations = {};
+      
+matches.forEach(m => {
+          // Wyscout to nejčastěji exportuje jako 'Scheme', někdy jako 'Formation'
+          let form = m['Scheme'] || m['scheme'] || m['Formation'] || m['formation'] || m.formation || m.Formation;
+          
+          // Očištění od zbytečných detailů - pokud je tam "4-3-3 (Offensive)", chceme jen "4-3-3"
+          if (form && typeof form === 'string' && form !== '-') {
+              form = form.split('(')[0].trim(); 
+          
+          } else {
+              form = form.trim();
+          }
+
+          if (!formations[form]) {
+              formations[form] = { count: 0, xg: 0, xga: 0, shots: 0, ppda: 0 };
+          }
+
+          formations[form].count++;
+          formations[form].xg += (Number(m.xg) || 0);
+          formations[form].xga += (Number(m.xga) || 0);
+          formations[form].shots += (Number(m.shots) || 0);
+          formations[form].ppda += (Number(m.ppda) || 0);
+      });
+
+      // Převedeme do pole a seřadíme primárně podle počtu odehraných zápasů
+      let formArray = Object.keys(formations).map(key => {
+          let f = formations[key];
+          return {
+              name: key,
+              count: f.count,
+              xg: f.xg / f.count,
+              xga: f.xga / f.count,
+              shots: f.shots / f.count,
+              ppda: f.ppda / f.count
+          };
+      }).sort((a, b) => b.count - a.count);
+
+      if (formArray.length === 0) {
+          container.innerHTML = `<div class="text-sm text-gray-400 italic p-4 text-center">K tomuto týmu zatím chybí data o formacích.</div>`;
+          return;
+      }
+
+      // 3. Vykreslíme to do čisté tabulky
+      let html = `
+        <table class="w-full text-left font-sans">
+          <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="py-3 px-3">Formace</th>
+              <th class="py-3 px-2 text-center" title="Počet zápasů">Zápasy</th>
+              <th class="py-3 px-2 text-center">Útok (xG)</th>
+              <th class="py-3 px-2 text-center">Obrana (xGA)</th>
+              <th class="py-3 px-2 text-center border-l border-gray-200">Rozdíl (xG Diff)</th>
+              <th class="py-3 px-2 text-center" title="Presing - Passes Per Defensive Action">PPDA</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+      `;
+
+      formArray.forEach(f => {
+          let diff = f.xg - f.xga;
+          let diffStr = diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2);
+          let diffClass = diff >= 0.4 ? 'text-emerald-600 bg-emerald-50 font-bold' : (diff <= -0.4 ? 'text-red-600 bg-red-50 font-bold' : 'text-gray-600');
+          
+          html += `
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-2.5 px-3 font-bold text-gray-900">${f.name}</td>
+              <td class="py-2.5 px-2 text-center font-bold text-gray-500 tabular-nums">${f.count}</td>
+              <td class="py-2.5 px-2 text-center text-gray-800 tabular-nums">${f.xg.toFixed(2)}</td>
+              <td class="py-2.5 px-2 text-center text-gray-800 tabular-nums">${f.xga.toFixed(2)}</td>
+              <td class="py-2.5 px-2 text-center text-sm tabular-nums border-l border-gray-100 rounded ${diffClass}">${diffStr}</td>
+              <td class="py-2.5 px-2 text-center text-gray-500 text-sm tabular-nums">${f.ppda.toFixed(1)}</td>
+            </tr>
+          `;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
       function updateAll() {
       // 1. Vytvoříme si bezpečného spouštěče. 
       // Když jakákoliv funkce selže, zachytí chybu, vypíše ji do konzole a jede se dál!
@@ -2624,12 +2987,14 @@ function toggleCompareMode(prefix = '') {
       // Tyhle funkce se teď zaručeně spustí, i kdyby cokoliv předtím zkolabovalo
       safeRun(renderH2H, 'renderH2H');
       safeRun(renderForm, 'renderForm');
+      safeRun(renderBigDataTracker, 'renderBigDataTracker');
 
       // --- ZÁLOŽKA 3: Koncepce ---
       safeRun(updateConceptArea, 'updateConceptArea');
       safeRun(renderHorizontalBarChart, 'renderHorizontalBarChart');
       safeRun(renderScatterChart, 'renderScatterChart');
       safeRun(renderMetricsTable, 'renderMetricsTable');
+      safeRun(renderHybridXPtsTable, 'renderHybridXPtsTable');
 
       // --- ZÁLOŽKA 4: Náš tým / Vývoj ---
       safeRun(renderTriptychCharts, 'renderTriptychCharts');
@@ -2637,6 +3002,7 @@ function toggleCompareMode(prefix = '') {
       safeRun(loadPlayersData,'LoadPlayersData');
       safeRun(renderPizzaChart,'renderPizzaChart');
       safeRun(() => renderTeamMatchesTable(CONFIG.primaryTeam, 'club-matches-body'), 'renderTeamMatchesTable');
+      safeRun(() => renderFormationAnalysis(CONFIG.primaryTeam, 'our-formations-container'), 'renderFormationAnalysisOurTeam');
 
     }
     function getMockData() {
