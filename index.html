@@ -89,8 +89,8 @@
         <div class="text-xs text-gray-500 uppercase tracking-wide">Data k <span id="snapshot-date" class="font-bold text-gray-700">Načítám...</span></div>
       </div>
       
-      <!-- NOVÝ PŘEPÍNAČ: Forma (Rolling 5 zápasů) -->
-      <div class="bg-blue-50 border border-blue-200 rounded p-2 flex flex-col mr-2 justify-center">
+<!-- NOVÝ PŘEPÍNAČ: Forma (Rolling 5 zápasů) - Na mobilu schováno (hidden), od tabletu výš vidět (sm:flex) -->
+      <div class="bg-blue-50 border border-blue-200 rounded p-2 flex-col mr-2 justify-center hidden sm:flex">
         <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="rolling-form-toggle" class="sr-only peer" onchange="toggleRollingForm()">
             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
@@ -98,7 +98,7 @@
         </label>
       </div>
       <!-- NOVÁ ROLETKA: Náš tým (Základ) -->
-      <div class="bg-amber-50 border border-amber-200 rounded p-2 flex flex-col mr-2">
+      <div class="hidden md:flex bg-amber-50 border border-amber-200 rounded p-2 flex flex-col mr-2">
         <label for="global-myteam" class="text-[10px] text-amber-600 uppercase font-bold mb-1">Domácí tým</label>
         <select id="global-myteam" onchange="updateMyTeam()" class="bg-white border border-amber-300 text-sm rounded px-2 py-1 outline-none min-w-[160px] font-semibold text-brand-gold shadow-sm">
           <!-- Naplní se samo z JS -->
@@ -467,10 +467,38 @@
             <span class="ml-3 text-sm font-bold text-gray-700">Porovnat s jiným hráčem</span>
         </label>
     </div>
+<div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
     
+    <!-- Levá část: Posuvník minut -->
+    <div class="flex-1 w-full flex flex-col">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Minimální odehrané minuty: <span id="min-minutes-val" class="text-brand-red text-lg ml-1 tabular-nums">300</span></label>
+        <input type="range" id="min-minutes-slider" min="0" max="1500" step="50" value="300" class="w-full cursor-pointer">
+    </div>
+
+    <!-- Pravá část: Výběr referenční skupiny (Pozice) -->
+    <div class="flex flex-col w-full sm:w-1/3">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Počítat percentil vůči:</label>
+        <select id="position-filter-select" class="bg-white border border-gray-300 text-sm rounded px-3 py-1.5 outline-none font-bold text-gray-700 shadow-sm cursor-pointer focus:border-brand-gold focus:ring-1 focus:ring-brand-gold">
+            <option value="All">Celá liga (Všichni v poli)</option>
+            <option value="Obrana">Pouze obránci (CB, LB, RB, WB)</option>
+            <option value="Záloha">Pouze záložníci (DM, CM, AM, LM, RM)</option>
+            <option value="Útok">Pouze útočníci (CF, WF, RW, LW)</option>
+        </select>
+    </div>
+    <!-- Třetí část: Přepínač na standardky -->
+    <div class="flex flex-col w-full sm:w-1/4 justify-center">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">Speciální dovednost:</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <!-- DŮLEŽITÉ: Přidán onchange="updatePizzaFilters()" -->
+            <input type="checkbox" id="set-pieces-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
+        </label>
+    </div>
+</div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
     <div class="flex overflow-x-auto pb-4 snap-x" id="scouting-wrapper">
-        
+ 
         <!-- LEVÁ STRANA: Původní hráč -->
         <div id="scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
             <select id="opponent-player-select" onchange="renderPizzaChart(this.value, document.getElementById('global-opponent').value, 'opponent-pizza-canvas', 'opponent-player-card')" class="border border-gray-300 rounded p-2 mb-6 shadow-sm w-full max-w-sm font-bold text-brand-red">
@@ -490,6 +518,27 @@
                             <div class="card-pill"><span class="card-icon yellow-card"></span><span class="card-yellow">0</span></div>
                             <div class="card-pill"><span class="card-icon red-card"></span><span class="card-red">0</span></div>
                         </div>
+                        <!-- Skrytý modul pro standardky -->
+<div class="card-set-pieces mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    
+    <!-- 1. patro: Průměry na 90 minut -->
+    <div class="mb-2">
+        <span class="text-[9px] uppercase font-bold text-brand-gold block mb-1">Exekuce / 90 min</span>
+        <div class="flex gap-5 text-sm font-black text-gray-800">
+            <div title="Rohové kopy" class="flex items-center gap-1.5"><span class="opacity-80">🚩</span> <span class="sp-corners">0</span></div>
+            <div title="Přímé kopy" class="flex items-center gap-1.5"><span class="opacity-80">🎯</span> <span class="sp-freekicks">0</span></div>
+        </div>
+    </div>
+    
+    <!-- 2. patro: Absolutní počet penalt -->
+<div class="border-t border-gray-100 pt-2">
+        <span class="text-[9px] uppercase font-bold text-gray-500 block mb-1">Zahrávané penalty (celkem)</span>
+        <div title="Penalty" class="text-sm font-black text-gray-800 flex items-center gap-1.5">
+            <span class="opacity-80">⚽</span> <span class="sp-penalties">0</span>
+        </div>
+    </div>
+    
+</div>
                     </div>
                 </div>
                 <div class="2xl:col-span-2 relative h-[450px]">
@@ -525,6 +574,27 @@
                             <div class="card-pill"><span class="card-icon yellow-card"></span><span class="card-yellow">0</span></div>
                             <div class="card-pill"><span class="card-icon red-card"></span><span class="card-red">0</span></div>
                         </div>
+<!-- Skrytý modul pro standardky -->
+<div class="card-set-pieces mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    
+    <!-- 1. patro: Průměry na 90 minut -->
+    <div class="mb-2">
+        <span class="text-[9px] uppercase font-bold text-brand-gold block mb-1">Exekuce / 90 min</span>
+        <div class="flex gap-5 text-sm font-black text-gray-800">
+            <div title="Rohové kopy" class="flex items-center gap-1.5"><span class="opacity-80">🚩</span> <span class="sp-corners">0</span></div>
+            <div title="Přímé kopy" class="flex items-center gap-1.5"><span class="opacity-80">🎯</span> <span class="sp-freekicks">0</span></div>
+        </div>
+    </div>
+    
+    <!-- 2. patro: Absolutní počet penalt -->
+<div class="border-t border-gray-100 pt-2">
+        <span class="text-[9px] uppercase font-bold text-gray-500 block mb-1">Zahrávané penalty (celkem)</span>
+        <div title="Penalty" class="text-sm font-black text-gray-800 flex items-center gap-1.5">
+            <span class="opacity-80">⚽</span> <span class="sp-penalties">0</span>
+        </div>
+    </div>
+    
+</div>
                     </div>
                 </div>
                 <div class="2xl:col-span-2 relative h-[450px]">
@@ -549,6 +619,7 @@
     </section>
     <!-- ========== ZÁLOŽKA 4: Náš tým ========== -->
 <section id="tab-ourteam" class="tab-content hidden space-y-6">
+  
   <div class="mt-8 border-t border-gray-300 pt-6">
     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
         <h3 class="text-xl font-bold text-gray-900">Individuální skauting hráče</h3>
@@ -560,7 +631,32 @@
             <span class="ml-3 text-sm font-bold text-gray-700">Porovnat s jiným hráčem</span>
         </label>
     </div>
-    
+    <!-- KONTROLNÍ PANEL PRO NÁŠ TÝM (Minuty a Pozice) -->
+<div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
+    <div class="flex-1 w-full flex flex-col">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Minimální odehrané minuty: <span id="our-min-minutes-val" class="text-brand-red text-lg ml-1 tabular-nums">300</span></label>
+        <input type="range" id="our-min-minutes-slider" min="0" max="1500" step="50" value="300" class="w-full cursor-pointer">
+    </div>
+    <div class="flex flex-col w-full sm:w-1/3">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Srovnat s (Referenční skupina):</label>
+        <select id="our-position-filter-select" class="bg-white border border-gray-300 text-sm rounded px-3 py-1.5 outline-none font-bold text-gray-700 shadow-sm cursor-pointer focus:border-brand-gold focus:ring-1 focus:ring-brand-gold">
+            <option value="All">Celá liga (Všichni v poli)</option>
+            <option value="Obrana">Pouze obránci (CB, LB, RB, WB)</option>
+            <option value="Záloha">Pouze záložníci (DM, CM, AM, LM, RM)</option>
+            <option value="Útok">Pouze útočníci (CF, WF, RW, LW)</option>
+        </select>
+    </div>
+    <!-- Třetí část: Přepínač na standardky -->
+    <div class="flex flex-col w-full sm:w-1/4 justify-center">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">Speciální dovednost:</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <!-- DŮLEŽITÉ: Přidán onchange="updatePizzaFilters()" -->
+            <input type="checkbox" id="our-set-pieces-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
+        </label>
+    </div>
+</div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
     <div class="flex overflow-x-auto pb-4 snap-x" id="our-scouting-wrapper">
         
@@ -583,6 +679,27 @@
                             <div class="card-pill"><span class="card-icon yellow-card"></span><span class="card-yellow">0</span></div>
                             <div class="card-pill"><span class="card-icon red-card"></span><span class="card-red">0</span></div>
                         </div>
+<!-- Skrytý modul pro standardky -->
+<div class="card-set-pieces mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    
+    <!-- 1. patro: Průměry na 90 minut -->
+    <div class="mb-2">
+        <span class="text-[9px] uppercase font-bold text-brand-gold block mb-1">Exekuce / 90 min</span>
+        <div class="flex gap-5 text-sm font-black text-gray-800">
+            <div title="Rohové kopy" class="flex items-center gap-1.5"><span class="opacity-80">🚩</span> <span class="sp-corners">0</span></div>
+            <div title="Přímé kopy" class="flex items-center gap-1.5"><span class="opacity-80">🎯</span> <span class="sp-freekicks">0</span></div>
+        </div>
+    </div>
+    
+    <!-- 2. patro: Absolutní počet penalt -->
+<div class="border-t border-gray-100 pt-2">
+        <span class="text-[9px] uppercase font-bold text-gray-500 block mb-1">Zahrávané penalty (celkem)</span>
+        <div title="Penalty" class="text-sm font-black text-gray-800 flex items-center gap-1.5">
+            <span class="opacity-80">⚽</span> <span class="sp-penalties">0</span>
+        </div>
+    </div>
+    
+</div>
                     </div>
                 </div>
                 <div class="2xl:col-span-2 relative h-[450px]">
@@ -618,6 +735,27 @@
                             <div class="card-pill"><span class="card-icon yellow-card"></span><span class="card-yellow">0</span></div>
                             <div class="card-pill"><span class="card-icon red-card"></span><span class="card-red">0</span></div>
                         </div>
+                        <!-- Skrytý modul pro standardky -->
+<div class="card-set-pieces mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    
+    <!-- 1. patro: Průměry na 90 minut -->
+    <div class="mb-2">
+        <span class="text-[9px] uppercase font-bold text-brand-gold block mb-1">Exekuce / 90 min</span>
+        <div class="flex gap-5 text-sm font-black text-gray-800">
+            <div title="Rohové kopy" class="flex items-center gap-1.5"><span class="opacity-80">🚩</span> <span class="sp-corners">0</span></div>
+            <div title="Přímé kopy" class="flex items-center gap-1.5"><span class="opacity-80">🎯</span> <span class="sp-freekicks">0</span></div>
+        </div>
+    </div>
+    
+    <!-- 2. patro: Absolutní počet penalt -->
+<div class="border-t border-gray-100 pt-2">
+        <span class="text-[9px] uppercase font-bold text-gray-500 block mb-1">Zahrávané penalty (celkem)</span>
+        <div title="Penalty" class="text-sm font-black text-gray-800 flex items-center gap-1.5">
+            <span class="opacity-80">⚽</span> <span class="sp-penalties">0</span>
+        </div>
+    </div>
+    
+</div>
                     </div>
                 </div>
                 <div class="2xl:col-span-2 relative h-[450px]">
@@ -631,7 +769,7 @@
    <!-- ANALÝZA FORMACÍ (NÁŠ TÝM) -->
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 mb-6">
         <h3 class="text-md font-bold text-gray-900 flex items-center gap-2 mb-1">
-          Naše výkony podle rozestavení
+        Naše výkony podle rozestavení
         </h3>
         <p class="text-xs text-gray-500 mb-3">Srovnání ofenzivní a defenzivní síly v různých herních systémech.</p>
         <div id="our-formations-container" class="overflow-x-auto">
@@ -1121,20 +1259,36 @@ function loadPlayersData() {
             }
         });
     }
-// Tuto funkci zavoláš pro Náš Tým po načtení dat, 
-// a pro Soupeře pokaždé, když nahoře v hlavičce změníš tým.
-function fillPlayerDropdown(teamName, selectElementId) {
+
+// Přidáme parametr pro přepínač
+function fillPlayerDropdown(teamName, selectElementId, minMins = 0, reqSetPieces = false) {
     const selectEl = document.getElementById(selectElementId);
-    if (!selectEl) return;
+    if (!selectEl || !teamName) return;
 
-    // Najdeme jen hráče daného týmu
-    const teamPlayers = PLAYERS_DATA.filter(p => p.Team === teamName);
+    const teamPlayers = PLAYERS_DATA.filter(p => {
+        let playerTeam = p['Team'] || p['Team within selected timeframe'] || p['team'] || "";
+        if (playerTeam.trim() !== teamName.trim()) return false;
+        
+        let mins = parseInt(p['Minutes played'] || p['Minutes Played'] || p['Minutes']) || 0;
+        if (mins < minMins) return false;
 
-    // Vyčistíme roletku a naplníme ji
+        if (reqSetPieces) {
+            let rohy = parseFloat(p['Corners per 90']) || 0;
+            let primaky = parseFloat(p['Free kicks per 90']) || 0;
+            let penalty = parseFloat(p['Penalties taken']) || 0;
+            // Pokud hráč nekope vůbec nic z toho, vyřadíme ho
+            if ((rohy + primaky + penalty) === 0) return false;
+        }
+
+        return true;
+    });
+
+    teamPlayers.sort((a, b) => (a.Player || "").localeCompare(b.Player || ""));
+
     selectEl.innerHTML = '<option value="">-- Vyber hráče --</option>';
-    
     teamPlayers.forEach(p => {
-        let posText = p.Pozice ? ` (${p.Pozice})` : '';
+        let pos = p.Position || p.OriginalPosition || p.Pozice || "";
+        let posText = pos ? ` (${pos})` : '';
         selectEl.innerHTML += `<option value="${p.Player}">${p.Player}${posText}</option>`;
     });
 
@@ -2398,26 +2552,25 @@ function renderConceptProfile() {
       container.innerHTML = html;
     }
     // =========================================================
-    // ⚽ HRÁČSKÝ MODUL (PIZZA GRAFY)
+    //  HRÁČSKÝ MODUL
     // =========================================================
     let PLAYERS_DATA = [];
-    const playersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtgZg75pP-MytWN3ATzxRtVhR8oh1RuozT_kc82dLyYqGKLKk_WTSCcdR_mMRYJ7aFrTbXjLel6v_B/pub?gid=35253027&single=true&output=csv';
+    const playersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtgZg75pP-MytWN3ATzxRtVhR8oh1RuozT_kc82dLyYqGKLKk_WTSCcdR_mMRYJ7aFrTbXjLel6v_B/pub?gid=108088948&single=true&output=csv';
 
     // Nutné zaregistrovat plugin pro popisky (musíš mít nahoře v HTML načtený script pro datalabels)
     Chart.register(ChartDataLabels);
 
-    const metricKeys = [
-        'Successful defensive actions per 90', 'Defensive duels won %', 'PAdj Interceptions', 'Aerial duels won %',
-        'xA per 90', 'Progressive runs per 90', 'Dribbles per 90', 'Smart passes per 90',
-        'Accurate long passes %', 'Progressive passes per 90', 'Accurate progressive passes %', 'Accurate passes %',
+const metricKeys = [
+        'Successful defensive actions per 90', 'Defensive duels won %', 'Aerial duels per 90', 'Aerial duels won %',
+        'Accurate passes %', 'Progressive passes per 90', 'Accurate progressive passes %', 'Passes to final third per 90',
+        'PAdj Interceptions', 'Dribbles per 90', 'Progressive runs per 90', 'Shot assists per 90',
         'xG per 90', 'Shots per 90', 'Touches in box per 90', 'Offensive duels won %'
     ];
-
     const pizzaLabels = [
-        ['Succ. def.', 'actions / 90'], ['Defensive', 'duels won %'], ['PAdj', 'Interceptions'], ['Aerial', 'duels won %'],
-        ['xA', 'per 90'], ['Progressive', 'runs / 90'], ['Dribbles', 'per 90'], ['Smart', 'passes / 90'],
-        ['Acc. long', 'passes %'], ['Progressive', 'passes / 90'], ['Acc. prog.', 'passes %'], ['Accurate', 'passes %'],
-        ['xG', 'per 90'], ['Shots', 'per 90'], ['Touches', 'in box / 90'], ['Offensive', 'duels won %']
+        ['Úspěšné obr.', 'akce / 90'], ['Úspěšnost obr.', 'soubojů %'], ['Hlavičkové', 'souboje / 90'], ['Úspěšnost', 'hlaviček %'],
+        ['Úspěšnost', 'přihrávek %'], ['Progresivní', 'přihr. / 90'], ['Úspěšnost progr.', 'přihrávek %'], ['Přihrávky do', 'finální 1/3 / 90'],
+        ['Zachycené', 'míče (PAdj)'], ['Driblink', '(1v1) / 90'], ['Vyvezení', 'míče / 90'], ['Přihrávky', 'na střelu / 90'],
+        ['xG (Očekávané', 'góly) / 90'], ['Střely', '/ 90'], ['Doteky ve', 'vápně / 90'], ['Úspěšnost ofenz.', 'soubojů %']
     ];
 
     const bgColors = [
@@ -2427,7 +2580,58 @@ function renderConceptProfile() {
         'rgba(155, 89, 182, 0.7)', 'rgba(155, 89, 182, 0.7)', 'rgba(155, 89, 182, 0.7)', 'rgba(155, 89, 182, 0.7)' 
     ];
     const bdColors = bgColors.map(color => color.replace('0.7', '1'));
+    function calculateDynamicPercentile(playerValue, referenceArray) {
+    if (isNaN(playerValue) || playerValue === null) return 0;
+    
+    // Očistíme pole od nesmyslů a seřadíme hodnoty
+    let validValues = referenceArray.filter(v => typeof v === 'number' && !isNaN(v)).sort((a, b) => a - b);
+    if (validValues.length === 0) return 0;
 
+    // Zjistíme, kolik hráčů je "horších" a kolik má "stejnou" hodnotu
+    let strictlyLower = validValues.filter(v => v < playerValue).length;
+    let equal = validValues.filter(v => v === playerValue).length;
+
+    // Standardní statistický vzorec pro percentil (zohledňuje shodu hodnot)
+    let pct = ((strictlyLower + (0.5 * equal)) / validValues.length) * 100;
+    
+    return Math.round(pct);
+}
+function getReferenceGroup(category, minMinutes = 0, positionFilter = 'All') {
+    return PLAYERS_DATA.filter(p => {
+        if (p['Kategorie'] !== category) return false;
+        
+        let mins = parseInt(p['Minutes played'] || p['Minutes Played'] || p['Minutes']) || 0;
+        if (mins < minMinutes) return false;
+        
+        // Získání přesné pozice z dat
+        let rawPos = p['Position'] || p['OriginalPosition'] || p['Pozice'] || "";
+        let genPos = getGeneralPosition(rawPos);
+        
+        if (genPos === 'Brankář') return false; // Brankáři v Pizze nemají co dělat
+        
+        // Aplikace filtru dle zóny
+        if (positionFilter !== 'All' && genPos !== positionFilter) return false;
+        
+        return true; 
+    });
+}
+function getGeneralPosition(posString) {
+    if (!posString) return 'All';
+    const pos = String(posString).toUpperCase().trim();
+    
+    if (pos.includes('GK') || pos.includes('BRANKÁŘ')) return 'Brankář';
+    
+    // OBRANA: Stopeři (CB), krajní beci (LB, RB), halfbeci (LWB, RWB)
+    if (pos.includes('CB') || pos.includes('LB') || pos.includes('RB') || pos.includes('WB')) return 'Obrana';
+    
+    // ZÁLOHA: Defenzivní (DM), střední (CM, MF), ofenzivní (AM), krajní záloha (LM, RM)
+    if (pos.includes('MF') || pos === 'LM' || pos === 'RM' || pos.includes('DM') || pos.includes('CM') || pos.includes('AM')) return 'Záloha';
+    
+    // ÚTOK: Hroťáci (CF, ST), křídla (WF, RW, LW)
+    if (pos.includes('CF') || pos.includes('WF') || pos === 'RW' || pos === 'LW' || pos === 'ST') return 'Útok';
+    
+    return 'All'; // Pokud Wyscout vygeneruje neznámou zkratku, hráč propadne do obecné skupiny
+}
     function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
         // POJISTKA: Pokud teamName není předaný, vzít ho rovnou z horní roletke soupeře
         if (!teamName || teamName === 'global-opponent') {
@@ -2460,21 +2664,68 @@ function renderConceptProfile() {
         console.log("Hráč úspěšně nalezen:", playerData);
 
         // A) VYPLNĚNÍ KARTY HRÁČE
-        if (card) {
-            card.style.display = 'flex';
+if (card) {
+            // Použijeme 'block', aby se neporušil CSS grid
+            card.style.display = 'block'; 
             const setVal = (cls, val) => { const el = card.querySelector(cls); if(el) el.textContent = val; };
             
             setVal('.card-name', playerData.Player);
-            setVal('.card-pos-age', `${playerData.OriginalPosition || playerData.Pozice || ''} • ${playerData.Age || ''} let`);
-            setVal('.card-minutes', `${playerData['Minutes played'] || 0}' / ${playerData['Matches played'] || 0} z.`);
-            setVal('.card-goals-xg', `${playerData['Goals_val'] || 0} (${playerData['xG_val'] || 0} xG)`);
-            setVal('.card-yellow', playerData['Yellow cards_val'] || 0);
-            setVal('.card-red', playerData['Red cards_val'] || 0);
+            setVal('.card-pos-age', `${playerData['Position'] || playerData.Pozice || ''} • ${playerData.Age || ''} let`);
+            
+            // Očištění Wyscout názvů - vymazali jsme to "_val" na konci! Zohledněno i to, kdyby chybělo 'played'
+            setVal('.card-minutes', `${playerData['Minutes played'] || playerData['Minutes'] || 0}' / ${playerData['Matches played'] || playerData['Matches'] || 0} z.`);
+            
+            let goals = playerData['Goals'] || 0;
+            let xg = parseFloat(playerData['xG']) || 0;
+            setVal('.card-goals-xg', `${goals} (${xg.toFixed(2)} xG)`);
+            
+            setVal('.card-yellow', playerData['Yellow cards'] || 0);
+            setVal('.card-red', playerData['Red cards'] || 0);
+            
+            // Zpracování standardek (umí přečíst jak přepočet na 90, tak absolutní čísla)
+            const spContainer = card.querySelector('.card-set-pieces');
+            let rohy = parseFloat(playerData['Corners per 90'] || playerData['Corners']) || 0;
+            let primaky = parseFloat(playerData['Free kicks per 90'] || playerData['Free kicks']) || 0;
+            let penalty = parseFloat(playerData['Penalties taken'] || playerData['Penalties']) || 0;
+            
+            if (spContainer) {
+                if ((rohy + primaky + penalty) > 0) {
+                    spContainer.style.display = 'block';
+                    setVal('.sp-corners', rohy.toFixed(2));
+                    setVal('.sp-freekicks', primaky.toFixed(2));
+                    setVal('.sp-penalties', penalty.toFixed(0));
+                } else {
+                    // Pokud je to dřevák, co standardky nekope, řádek zase schováme
+                    spContainer.style.display = 'none';
+                }
+            }
         }
 
         // B) PIZZA GRAF
-        let currentPercentiles = metricKeys.map(key => playerData[key + '_pct'] || 0);
-        let currentRawValues = metricKeys.map(key => playerData[key + '_val'] !== undefined ? playerData[key + '_val'] : '');
+
+        let isOurTeam = canvasId.includes('our-')
+        let currentMinMins = parseInt(document.getElementById('min-minutes-slider').value) || 0;
+        let currentPosFilter = document.getElementById('position-filter-select').value || 'All';
+        
+        // 2. Pošleme to do matematického motoru
+        let refGroup = getReferenceGroup(playerData.Kategorie, currentMinMins, currentPosFilter);
+        // 2. Dynamický výpočet PERCENTILŮ
+        let currentPercentiles = metricKeys.map(key => {
+            // Získáme čistou hodnotu našeho hráče (už nepotřebujeme '_val', bereme rovnou přesný klíč z pole)
+            let rawValue = parseFloat(playerData[key]);
+            if (isNaN(rawValue)) return 0;
+
+            // Získáme všechny platné hodnoty u této metriky od vyfiltrovaných hráčů
+            let refValues = refGroup.map(p => parseFloat(p[key]));
+            
+            return calculateDynamicPercentile(rawValue, refValues);
+        });
+
+        // 3. Získání reálných čísel (RAW HODNOTY)
+        let currentRawValues = metricKeys.map(key => {
+            let val = parseFloat(playerData[key]);
+            return isNaN(val) ? '-' : val;
+        });
 
         const canvasEl = document.getElementById(canvasId);
         if (!canvasEl) {
@@ -2554,10 +2805,76 @@ function renderConceptProfile() {
                 }
             }
         });
-    }    // Hlavní dirigent: zavolá se při změně soupeře nebo po nahrání CSV a překreslí úplně všechno
-// =========================================================
-    // UNIVERZÁLNÍ MODUL POROVNÁNÍ HRÁČŮ (Pro obě záložky)
-    // =========================================================
+    }
+    function updatePizzaFilters() {
+    // --- 1. NAČTENÍ HODNOT ZE SOUPEŘOVA PANELU ---
+    const oppSlider = document.getElementById('min-minutes-slider');
+    const oppPos = document.getElementById('position-filter-select');
+    const oppMins = oppSlider ? parseInt(oppSlider.value) : 0;
+    const oppPosVal = oppPos ? oppPos.value : 'All';
+    if (oppSlider) document.getElementById('min-minutes-val').innerText = oppSlider.value;
+
+    // --- 2. NAČTENÍ HODNOT Z PANELU NAŠEHO TÝMU ---
+    const ourSlider = document.getElementById('our-min-minutes-slider');
+    const ourPos = document.getElementById('our-position-filter-select');
+    const ourMins = ourSlider ? parseInt(ourSlider.value) : 0;
+    const ourPosVal = ourPos ? ourPos.value : 'All';
+    if (ourSlider) document.getElementById('our-min-minutes-val').innerText = ourSlider.value;
+
+    // --- 3. NAČTENÍ TÝMŮ A VYBRANÝCH HRÁČŮ ---
+    const oppTeam = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : "";
+    const oppCompareTeam = document.getElementById('compare-team-select') ? document.getElementById('compare-team-select').value : "";
+    const ourTeam = CONFIG.primaryTeam;
+    const ourCompareTeam = document.getElementById('our-compare-team-select') ? document.getElementById('our-compare-team-select').value : "";
+
+    const oppSelect = document.getElementById('opponent-player-select');
+    const oppCompareSelect = document.getElementById('compare-player-select');
+    const ourSelect = document.getElementById('our-player-select');
+    const ourCompareSelect = document.getElementById('our-compare-player-select');
+
+    const currentOppPlayer = oppSelect ? oppSelect.value : "";
+    const currentOppComparePlayer = oppCompareSelect ? oppCompareSelect.value : "";
+    const currentOurPlayer = ourSelect ? ourSelect.value : "";
+    const currentOurComparePlayer = ourCompareSelect ? ourCompareSelect.value : "";
+
+    // --- 4. PŘEFILTROVÁNÍ ROLETEK S PŘEDÁNÍM PARAMETRŮ ---
+    if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', oppMins);
+    if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', oppMins, oppPosVal);
+    
+    fillPlayerDropdown(ourTeam, 'our-player-select', ourMins, ourPosVal);
+    if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', ourMins, ourPosVal);
+
+    // --- 5. UNIVERZÁLNÍ PŘEKRESLENÍ GRAFŮ ---
+    const handleChartRedraw = (selectEl, currentPlayer, teamName, canvasId, cardId) => {
+        if (currentPlayer && selectEl && Array.from(selectEl.options).some(opt => opt.value === currentPlayer)) {
+            selectEl.value = currentPlayer;
+            renderPizzaChart(currentPlayer, teamName, canvasId, cardId);
+        } else {
+            const card = document.getElementById(cardId);
+            if (card) card.style.display = 'none';
+            if (charts[canvasId]) charts[canvasId].destroy();
+        }
+    };
+    const oppSetPieces = document.getElementById('set-pieces-toggle') ? document.getElementById('set-pieces-toggle').checked : false;
+    const ourSetPieces = document.getElementById('our-set-pieces-toggle') ? document.getElementById('our-set-pieces-toggle').checked : false;
+
+    // A pak jen přidej tyhle proměnné na konec volání fillPlayerDropdown:
+    if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', oppMins, oppSetPieces);
+    if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', oppMins, oppSetPieces);
+    
+    fillPlayerDropdown(ourTeam, 'our-player-select', ourMins, ourSetPieces);
+    if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', ourMins, ourSetPieces);
+    handleChartRedraw(oppSelect, currentOppPlayer, oppTeam, 'opponent-pizza-canvas', 'opponent-player-card');
+    handleChartRedraw(oppCompareSelect, currentOppComparePlayer, oppCompareTeam, 'compare-pizza-canvas', 'compare-player-card');
+    handleChartRedraw(ourSelect, currentOurPlayer, ourTeam, 'our-pizza-canvas', 'our-player-card');
+    handleChartRedraw(ourCompareSelect, currentOurComparePlayer, ourCompareTeam, 'our-compare-pizza-canvas', 'our-compare-player-card');
+}
+
+// --- 6. ZAVĚŠENÍ SPÚŠTĚČŮ NA VŠECHNY 4 PRVKY ---
+document.getElementById('min-minutes-slider')?.addEventListener('input', updatePizzaFilters);
+document.getElementById('position-filter-select')?.addEventListener('change', updatePizzaFilters);
+document.getElementById('our-min-minutes-slider')?.addEventListener('input', updatePizzaFilters);
+document.getElementById('our-position-filter-select')?.addEventListener('change', updatePizzaFilters);
 function toggleCompareMode(prefix = '') {
         const isChecked = document.getElementById(prefix + 'compare-toggle').checked;
         const leftSide = document.getElementById(prefix + 'scouting-left');
