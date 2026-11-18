@@ -2806,69 +2806,78 @@ if (card) {
             }
         });
     }
+let globalPizzaState = { mins: 300, pos: 'All', sp: false };
+
     function updatePizzaFilters() {
-    // --- 1. NAČTENÍ HODNOT ZE SOUPEŘOVA PANELU ---
-    const oppSlider = document.getElementById('min-minutes-slider');
-    const oppPos = document.getElementById('position-filter-select');
-    const oppMins = oppSlider ? parseInt(oppSlider.value) : 0;
-    const oppPosVal = oppPos ? oppPos.value : 'All';
-    if (oppSlider) document.getElementById('min-minutes-val').innerText = oppSlider.value;
+        // 1. ZJISTÍME, CO SE ZMĚNILO A ZESYNCHRONIZUJEME TO (Zrcadlení záložek)
+        let oppMins = parseInt(document.getElementById('min-minutes-slider').value) || 0;
+        let ourMins = parseInt(document.getElementById('our-min-minutes-slider').value) || 0;
+        globalPizzaState.mins = (oppMins !== globalPizzaState.mins) ? oppMins : ourMins;
 
-    // --- 2. NAČTENÍ HODNOT Z PANELU NAŠEHO TÝMU ---
-    const ourSlider = document.getElementById('our-min-minutes-slider');
-    const ourPos = document.getElementById('our-position-filter-select');
-    const ourMins = ourSlider ? parseInt(ourSlider.value) : 0;
-    const ourPosVal = ourPos ? ourPos.value : 'All';
-    if (ourSlider) document.getElementById('our-min-minutes-val').innerText = ourSlider.value;
+        let oppPos = document.getElementById('position-filter-select').value;
+        let ourPos = document.getElementById('our-position-filter-select').value;
+        globalPizzaState.pos = (oppPos !== globalPizzaState.pos) ? oppPos : ourPos;
 
-    // --- 3. NAČTENÍ TÝMŮ A VYBRANÝCH HRÁČŮ ---
-    const oppTeam = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : "";
-    const oppCompareTeam = document.getElementById('compare-team-select') ? document.getElementById('compare-team-select').value : "";
-    const ourTeam = CONFIG.primaryTeam;
-    const ourCompareTeam = document.getElementById('our-compare-team-select') ? document.getElementById('our-compare-team-select').value : "";
+        let oppSp = document.getElementById('set-pieces-toggle').checked;
+        let ourSp = document.getElementById('our-set-pieces-toggle').checked;
+        globalPizzaState.sp = (oppSp !== globalPizzaState.sp) ? oppSp : ourSp;
 
-    const oppSelect = document.getElementById('opponent-player-select');
-    const oppCompareSelect = document.getElementById('compare-player-select');
-    const ourSelect = document.getElementById('our-player-select');
-    const ourCompareSelect = document.getElementById('our-compare-player-select');
+        // Vynutíme stejné hodnoty na obou záložkách, ať je trenér kdekoli
+        document.getElementById('min-minutes-slider').value = globalPizzaState.mins;
+        document.getElementById('our-min-minutes-slider').value = globalPizzaState.mins;
+        document.getElementById('min-minutes-val').innerText = globalPizzaState.mins;
+        document.getElementById('our-min-minutes-val').innerText = globalPizzaState.mins;
+        
+        document.getElementById('position-filter-select').value = globalPizzaState.pos;
+        document.getElementById('our-position-filter-select').value = globalPizzaState.pos;
+        
+        document.getElementById('set-pieces-toggle').checked = globalPizzaState.sp;
+        document.getElementById('our-set-pieces-toggle').checked = globalPizzaState.sp;
 
-    const currentOppPlayer = oppSelect ? oppSelect.value : "";
-    const currentOppComparePlayer = oppCompareSelect ? oppCompareSelect.value : "";
-    const currentOurPlayer = ourSelect ? ourSelect.value : "";
-    const currentOurComparePlayer = ourCompareSelect ? ourCompareSelect.value : "";
+        // 2. NAČTEME TÝMY
+        const oppTeam = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : "";
+        const oppCompareTeam = document.getElementById('compare-team-select') ? document.getElementById('compare-team-select').value : "";
+        const ourTeam = CONFIG.primaryTeam;
+        const ourCompareTeam = document.getElementById('our-compare-team-select') ? document.getElementById('our-compare-team-select').value : "";
 
-    // --- 4. PŘEFILTROVÁNÍ ROLETEK S PŘEDÁNÍM PARAMETRŮ ---
-    if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', oppMins);
-    if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', oppMins, oppPosVal);
-    
-    fillPlayerDropdown(ourTeam, 'our-player-select', ourMins, ourPosVal);
-    if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', ourMins, ourPosVal);
+        // --- OPRAVA: ZAPAMATOVÁNÍ VYBRANÝCH HRÁČŮ PŘED PŘEKRESLENÍM ROLETEK ---
+        const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
+        const selectedPlayers = {
+            opp: getVal('opponent-player-select'),
+            oppComp: getVal('compare-player-select'),
+            our: getVal('our-player-select'),
+            ourComp: getVal('our-compare-player-select')
+        };
 
-    // --- 5. UNIVERZÁLNÍ PŘEKRESLENÍ GRAFŮ ---
-    const handleChartRedraw = (selectEl, currentPlayer, teamName, canvasId, cardId) => {
-        if (currentPlayer && selectEl && Array.from(selectEl.options).some(opt => opt.value === currentPlayer)) {
-            selectEl.value = currentPlayer;
-            renderPizzaChart(currentPlayer, teamName, canvasId, cardId);
-        } else {
-            const card = document.getElementById(cardId);
-            if (card) card.style.display = 'none';
-            if (charts[canvasId]) charts[canvasId].destroy();
-        }
-    };
-    const oppSetPieces = document.getElementById('set-pieces-toggle') ? document.getElementById('set-pieces-toggle').checked : false;
-    const ourSetPieces = document.getElementById('our-set-pieces-toggle') ? document.getElementById('our-set-pieces-toggle').checked : false;
+        // 3. PŘEFILTROVÁNÍ ROLETEK HRÁČŮ
+        if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', globalPizzaState.mins, globalPizzaState.sp);
+        if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', globalPizzaState.mins, globalPizzaState.sp);
+        
+        fillPlayerDropdown(ourTeam, 'our-player-select', globalPizzaState.mins, globalPizzaState.sp);
+        if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', globalPizzaState.mins, globalPizzaState.sp);
 
-    // A pak jen přidej tyhle proměnné na konec volání fillPlayerDropdown:
-    if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', oppMins, oppSetPieces);
-    if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', oppMins, oppSetPieces);
-    
-    fillPlayerDropdown(ourTeam, 'our-player-select', ourMins, ourSetPieces);
-    if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', ourMins, ourSetPieces);
-    handleChartRedraw(oppSelect, currentOppPlayer, oppTeam, 'opponent-pizza-canvas', 'opponent-player-card');
-    handleChartRedraw(oppCompareSelect, currentOppComparePlayer, oppCompareTeam, 'compare-pizza-canvas', 'compare-player-card');
-    handleChartRedraw(ourSelect, currentOurPlayer, ourTeam, 'our-pizza-canvas', 'our-player-card');
-    handleChartRedraw(ourCompareSelect, currentOurComparePlayer, ourCompareTeam, 'our-compare-pizza-canvas', 'our-compare-player-card');
-}
+        // 4. PŘEKRESLENÍ VŠECH AKTIVNÍCH GRAFŮ
+        const handleChartRedraw = (selectId, savedPlayer, teamName, canvasId, cardId) => {
+            const selectEl = document.getElementById(selectId);
+            
+            // Kontrola, jestli zapamatovaný hráč po aplikaci filtru stále v roletce existuje
+            if (savedPlayer && selectEl && Array.from(selectEl.options).some(opt => opt.value === savedPlayer)) {
+                selectEl.value = savedPlayer; // Vrátíme mu výběr!
+                renderPizzaChart(savedPlayer, teamName, canvasId, cardId); // Překreslíme s novým percentilem!
+            } else {
+                // Pokud hráč filtrem neprošel (např. má jen 200 minut a tys dal 300), schováme graf
+                if (selectEl) selectEl.value = "";
+                const card = document.getElementById(cardId);
+                if (card) card.style.display = 'none';
+                if (charts[canvasId]) charts[canvasId].destroy();
+            }
+        };
+
+        handleChartRedraw('opponent-player-select', selectedPlayers.opp, oppTeam, 'opponent-pizza-canvas', 'opponent-player-card');
+        handleChartRedraw('compare-player-select', selectedPlayers.oppComp, oppCompareTeam, 'compare-pizza-canvas', 'compare-player-card');
+        handleChartRedraw('our-player-select', selectedPlayers.our, ourTeam, 'our-pizza-canvas', 'our-player-card');
+        handleChartRedraw('our-compare-player-select', selectedPlayers.ourComp, ourCompareTeam, 'our-compare-pizza-canvas', 'our-compare-player-card');
+    }
 
 // --- 6. ZAVĚŠENÍ SPÚŠTĚČŮ NA VŠECHNY 4 PRVKY ---
 document.getElementById('min-minutes-slider')?.addEventListener('input', updatePizzaFilters);
