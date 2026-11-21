@@ -2660,7 +2660,7 @@ const GK_METRICS = [
     {
         label: ['Střely', 'proti / 90'],
         color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
-        invert: true,
+        invert: false,
         getValue: (p) => {
             const per90 = getSafeMetric(p, ['Shots against per 90_GK', 'Shots against per 90']);
             if (per90 !== null) return per90;
@@ -2672,7 +2672,7 @@ const GK_METRICS = [
     {
         label: ['xGA', '/ 90'],
         color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
-        invert: true,
+        invert: false,
         getValue: (p) => {
             const per90 = getSafeMetric(p, ['xG against per 90_GK', 'xG against per 90']);
             if (per90 !== null) return per90;
@@ -2688,17 +2688,22 @@ const GK_METRICS = [
         getValue: (p) => getSafeMetric(p, ['Save rate %_GK', 'Save rate, %_GK', 'Save rate %', 'Save rate, %']) || 0
     },
     {
-        label: ['Prevented', 'goals / 90'],
-        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
-        invert: false,
-        getValue: (p) => {
-            const per90 = getSafeMetric(p, ['Prevented goals per 90_GK', 'Prevented goals per 90']);
-            if (per90 !== null) return per90;
-            const mins = getSafeMetric(p, ['Minutes played']) || 0;
+{
+    label: ['Prevented', 'goals / 90'],
+    color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+    invert: false,
+    getValue: (p) => {
+        let val = getSafeMetric(p, ['Prevented goals per 90_GK', 'Prevented goals per 90']);
+        if (val === null) {
+            const mins = getSafeMetric(p, ['Minutes played', 'Minutes']) || 0;
             const total = getSafeMetric(p, ['Prevented goals_GK', 'Prevented goals']) || 0;
-            return mins > 0 ? (total / mins) * 90 : 0;
+            val = mins > 0 ? (total / mins) * 90 : 0;
         }
-    },
+        // Pojistka: pokud Google Sheets sežraly desetinnou tečku (např. 354 místo 0.354)
+        if (Math.abs(val) > 10) val = val / 1000;
+        return val;
+    }
+},
     {
         label: ['Exits', '/ 90'],
         color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
@@ -2917,6 +2922,7 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
                                 rotation: function(context) {
                                     const total = context.chart.data.labels.length;
                                     const step = 360 / total;
+                                    const startOffset = isGK ? -90 : 0;
                                     let angle = (context.dataIndex * step) + (step / 2) - 90;
                                     let tanAngle = angle + 90;
                                     let normAngle = (tanAngle % 360 + 360) % 360;
@@ -2958,7 +2964,7 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
             maintainAspectRatio: false,
             layout: { padding: 50 },
             interaction: { mode: 'index', intersect: true },
-            scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+            scales: { r: { min: 0, max: 100, startAngle: isGK ? -90 : 0, ticks: { display: false } } },
             plugins: {
                 legend: { display: false },
                 datalabels: { events: [] },
