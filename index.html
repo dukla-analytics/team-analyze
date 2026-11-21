@@ -534,13 +534,31 @@
     </div>
     
     <!-- 2. patro: Absolutní počet penalt -->
-<div class="border-t border-gray-100 pt-2">
+    <div class="border-t border-gray-100 pt-2">
         <span class="text-[9px] uppercase font-bold text-gray-500 block mb-1">Zahrávané penalty (celkem)</span>
         <div title="Penalty" class="text-sm font-black text-gray-800 flex items-center gap-1.5">
             <span class="opacity-80">⚽</span> <span class="sp-penalties">0</span>
         </div>
     </div>
     
+  </div>
+  <!-- Skrytý modul pro brankáře -->
+<div class="card-gk-stats mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    <span class="text-[9px] uppercase font-bold text-brand-red block mb-2">Brankářské statistiky (celkem)</span>
+    <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Čistá konta</span>
+            <span class="gk-clean-sheets text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Obdr. góly</span>
+            <span class="gk-conceded text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Střely proti</span>
+            <span class="gk-shots text-sm font-black text-gray-800">0</span>
+        </div>
+    </div>
 </div>
                     </div>
                 </div>
@@ -597,6 +615,24 @@
         </div>
     </div>
     
+</div>
+                      <!-- Skrytý modul pro brankáře -->
+<div class="card-gk-stats mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    <span class="text-[9px] uppercase font-bold text-brand-red block mb-2">Brankářské statistiky (celkem)</span>
+    <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Čistá konta</span>
+            <span class="gk-clean-sheets text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Obdr. góly</span>
+            <span class="gk-conceded text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Střely proti</span>
+            <span class="gk-shots text-sm font-black text-gray-800">0</span>
+        </div>
+    </div>
 </div>
                     </div>
                 </div>
@@ -708,6 +744,24 @@
     </div>
     
 </div>
+                    <!-- Skrytý modul pro brankáře -->
+<div class="card-gk-stats mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    <span class="text-[9px] uppercase font-bold text-brand-red block mb-2">Brankářské statistiky (celkem)</span>
+    <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Čistá konta</span>
+            <span class="gk-clean-sheets text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Obdr. góly</span>
+            <span class="gk-conceded text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Střely proti</span>
+            <span class="gk-shots text-sm font-black text-gray-800">0</span>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
                 <div class="2xl:col-span-2 relative h-[450px]">
@@ -763,6 +817,24 @@
         </div>
     </div>
     
+</div>
+                      <!-- Skrytý modul pro brankáře -->
+<div class="card-gk-stats mt-2 pt-2 border-t border-gray-200" style="display:none;">
+    <span class="text-[9px] uppercase font-bold text-brand-red block mb-2">Brankářské statistiky (celkem)</span>
+    <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Čistá konta</span>
+            <span class="gk-clean-sheets text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Obdr. góly</span>
+            <span class="gk-conceded text-sm font-black text-gray-800">0</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm">
+            <span class="text-[9px] uppercase font-bold text-gray-400 block">Střely proti</span>
+            <span class="gk-shots text-sm font-black text-gray-800">0</span>
+        </div>
+    </div>
 </div>
                     </div>
                 </div>
@@ -2794,7 +2866,7 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
     const posStr = String(playerData['Position'] || playerData.Pozice || '').toUpperCase();
     const isGK = posStr.includes('GK');
 
-    // A) VYPLNĚNÍ KARTY HRÁČE
+// A) VYPLNĚNÍ KARTY HRÁČE
     if (card) {
         card.style.display = 'block'; 
         const setVal = (cls, val) => { const el = card.querySelector(cls); if (el) el.textContent = val; };
@@ -2805,17 +2877,31 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
         setVal('.card-yellow', playerData['Yellow cards'] || 0);
         setVal('.card-red', playerData['Red cards'] || 0);
 
+        const goalsXgBox = card.querySelector('.card-goals-xg')?.closest('.card-stat-item');
         const spContainer = card.querySelector('.card-set-pieces');
+        const gkContainer = card.querySelector('.card-gk-stats');
 
         if (isGK) {
-            // Gólman: obdržené góly, čistá konta, střely proti
-            const conceded = getSafeMetric(playerData, ['Conceded goals_GK', 'Conceded goals']) || 0;
-            const cleanSheets = getSafeMetric(playerData, ['Clean sheets_GK', 'Clean sheets']) || 0;
-            const shotsAgainst = getSafeMetric(playerData, ['Shots against_GK', 'Shots against']) || 0;
-            setVal('.card-goals-xg', `${conceded} OG • ${cleanSheets} ČK • ${shotsAgainst} střel`);
+            // Skryjeme Góly / xG i standardky
+            if (goalsXgBox) goalsXgBox.style.display = 'none';
             if (spContainer) spContainer.style.display = 'none';
+
+            // Zobrazíme a naplníme brankářský box
+            if (gkContainer) {
+                gkContainer.style.display = 'block';
+                const cleanSheets = getSafeMetric(playerData, ['Clean sheets_GK', 'Clean sheets']) || 0;
+                const conceded = getSafeMetric(playerData, ['Conceded goals_GK', 'Conceded goals']) || 0;
+                const shotsAgainst = getSafeMetric(playerData, ['Shots against_GK', 'Shots against']) || 0;
+
+                setVal('.gk-clean-sheets', cleanSheets);
+                setVal('.gk-conceded', conceded);
+                setVal('.gk-shots', shotsAgainst);
+            }
         } else {
-            // Hráč v poli
+            // Vrátíme Góly / xG a schováme brankářský box
+            if (goalsXgBox) goalsXgBox.style.display = 'flex';
+            if (gkContainer) gkContainer.style.display = 'none';
+
             let goals = playerData['Goals'] || 0;
             let xg = parseFloat(playerData['xG']) || 0;
             setVal('.card-goals-xg', `${goals} (${xg.toFixed(2)} xG)`);
