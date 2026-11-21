@@ -706,7 +706,7 @@
         
         <!-- LEVÁ STRANA: Náš hráč -->
         <div id="our-scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
-            <select id="our-player-select" onchange="renderPizzaChart(this.value, CONFIG.primaryTeam, 'our-pizza-canvas', 'our-player-card')" class="border border-gray-300 rounded p-2 mb-6 shadow-sm w-full max-w-sm font-bold text-brand-red">
+            <select id="our-player-select" onchange="renderPizzaChart(this.value, CONFIG.ourTeam, 'our-pizza-canvas', 'our-player-card')" class="border border-gray-300 rounded p-2 mb-6 shadow-sm w-full max-w-sm font-bold text-brand-red">
                 <option value="">-- Vyberte hráče --</option>
             </select>
 
@@ -907,6 +907,7 @@
   <script>
     const CONFIG = {
       primaryTeam: "Dukla Praha U19",
+      ourTeam: "Dukla Praha U19",
       // Sem dejte URL CSV exportu z vaší Google Tabulky
       csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxM778YVwjtCfQAaVDSoCylfIU7dSye9vR8lUwi9Fp7pmXJxb7F-OXM-w5rQL1e4PY-GoceT4_gRcn/pub?gid=0&single=true&output=csv"
     };
@@ -1332,7 +1333,7 @@ function loadPlayersData() {
                 console.log("Hráčská data úspěšně stažena, celkem řádků:", PLAYERS_DATA.length);
                 
                 // OKAMŽITĚ po stažení naplníme roletku pro náš tým
-                fillPlayerDropdown(CONFIG.primaryTeam, 'our-player-select');
+                fillPlayerDropdown(CONFIG.ourTeam, 'our-player-select');
             },
             error: function(err) {
                 console.error("Chyba při stahování hráčských dat:", err);
@@ -3118,7 +3119,7 @@ let globalPizzaState = { mins: 300, pos: 'All', sp: false };
         // 2. NAČTEME TÝMY
         const oppTeam = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : "";
         const oppCompareTeam = document.getElementById('compare-team-select') ? document.getElementById('compare-team-select').value : "";
-        const ourTeam = CONFIG.primaryTeam;
+        const ourTeam = CONFIG.ourTeam;
         const ourCompareTeam = document.getElementById('our-compare-team-select') ? document.getElementById('our-compare-team-select').value : "";
 
         // --- OPRAVA: ZAPAMATOVÁNÍ VYBRANÝCH HRÁČŮ PŘED PŘEKRESLENÍM ROLETEK ---
@@ -3618,8 +3619,8 @@ matches.forEach(m => {
       safeRun(renderConceptProfile, 'renderConceptProfile');
       safeRun(loadPlayersData,'LoadPlayersData');
       safeRun(renderPizzaChart,'renderPizzaChart');
-      safeRun(() => renderTeamMatchesTable(CONFIG.primaryTeam, 'club-matches-body'), 'renderTeamMatchesTable');
-      safeRun(() => renderFormationAnalysis(CONFIG.primaryTeam, 'our-formations-container'), 'renderFormationAnalysisOurTeam');
+      safeRun(() => renderTeamMatchesTable(CONFIG.ourTeam, 'club-matches-body'), 'renderTeamMatchesTable');
+      safeRun(() => renderFormationAnalysis(CONFIG.ourTeam, 'our-formations-container'), 'renderFormationAnalysisOurTeam');
 
     }
     function getMockData() {
