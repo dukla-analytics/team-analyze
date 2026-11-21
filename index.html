@@ -1269,7 +1269,7 @@ function loadPlayersData() {
     }
 
 // Přidáme parametr pro přepínač
-function fillPlayerDropdown(teamName, selectElementId, minMins = 0, reqSetPieces = false) {
+function fillPlayerDropdown(teamName, selectElementId, minMins = 0, reqSetPieces = false, onlyGK = false) {
     const selectEl = document.getElementById(selectElementId);
     if (!selectEl || !teamName) return;
 
@@ -1286,7 +1286,11 @@ function fillPlayerDropdown(teamName, selectElementId, minMins = 0, reqSetPieces
             let penalty = parseFloat(p['Penalties taken']) || 0;
             // Pokud hráč nekope vůbec nic z toho, vyřadíme ho
             if ((rohy + primaky + penalty) === 0) return false;
-        }
+        };
+        if (onlyGK) {
+          const pos = String(p['Position'] || p.Pozice || '').toUpperCase();
+          if (!pos.includes('GK')) return false;
+        };
 
         return true;
     });
