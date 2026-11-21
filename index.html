@@ -2632,58 +2632,178 @@ function getGeneralPosition(posString) {
     
     return 'All'; // Pokud Wyscout vygeneruje neznámou zkratku, hráč propadne do obecné skupiny
 }
-    function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
-        // POJISTKA: Pokud teamName není předaný, vzít ho rovnou z horní roletke soupeře
-        if (!teamName || teamName === 'global-opponent') {
-            const globalOppSelect = document.getElementById('global-opponent');
-            teamName = globalOppSelect ? globalOppSelect.value : '';
+    // Pomocná funkce pro bezpečné načtení čísla z možných názvů sloupců
+function getSafeMetric(p, keys) {
+    for (let k of keys) {
+        if (p[k] !== undefined && p[k] !== '') {
+            const val = parseFloat(String(p[k]).replace(',', '.'));
+            if (!isNaN(val)) return val;
         }
+    }
+    return null;
+}
 
-        console.log("Kreslím graf pro hráče:", playerName, "| Tým:", teamName);
+const GK_METRICS = [
+    // --- 6 GÓLMANSKÝCH (ČERVENÁ) ---
+    {
+        label: ['Obdržené', 'góly / 90'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: true,
+        getValue: (p) => {
+            const per90 = getSafeMetric(p, ['Conceded goals per 90_GK', 'Conceded goals per 90']);
+            if (per90 !== null) return per90;
+            const mins = getSafeMetric(p, ['Minutes played']) || 0;
+            const total = getSafeMetric(p, ['Conceded goals_GK', 'Conceded goals']) || 0;
+            return mins > 0 ? (total / mins) * 90 : 0;
+        }
+    },
+    {
+        label: ['Střely', 'proti / 90'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: true,
+        getValue: (p) => {
+            const per90 = getSafeMetric(p, ['Shots against per 90_GK', 'Shots against per 90']);
+            if (per90 !== null) return per90;
+            const mins = getSafeMetric(p, ['Minutes played']) || 0;
+            const total = getSafeMetric(p, ['Shots against_GK', 'Shots against']) || 0;
+            return mins > 0 ? (total / mins) * 90 : 0;
+        }
+    },
+    {
+        label: ['xGA', '/ 90'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: true,
+        getValue: (p) => {
+            const per90 = getSafeMetric(p, ['xG against per 90_GK', 'xG against per 90']);
+            if (per90 !== null) return per90;
+            const mins = getSafeMetric(p, ['Minutes played']) || 0;
+            const total = getSafeMetric(p, ['xG against_GK', 'xG against']) || 0;
+            return mins > 0 ? (total / mins) * 90 : 0;
+        }
+    },
+    {
+        label: ['Save rate', '%'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Save rate %_GK', 'Save rate, %_GK', 'Save rate %', 'Save rate, %']) || 0
+    },
+    {
+        label: ['Prevented', 'goals / 90'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: false,
+        getValue: (p) => {
+            const per90 = getSafeMetric(p, ['Prevented goals per 90_GK', 'Prevented goals per 90']);
+            if (per90 !== null) return per90;
+            const mins = getSafeMetric(p, ['Minutes played']) || 0;
+            const total = getSafeMetric(p, ['Prevented goals_GK', 'Prevented goals']) || 0;
+            return mins > 0 ? (total / mins) * 90 : 0;
+        }
+    },
+    {
+        label: ['Exits', '/ 90'],
+        color: 'rgba(220, 38, 38, 0.75)', border: '#dc2626',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Exits per 90_GK', 'Exits per 90']) || 0
+    },
+
+    // --- 6 PŘIHRÁVKOVÝCH (FIALOVÁ) ---
+    {
+        label: ['PAdj', 'Interceptions'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['PAdj Interceptions']) || 0
+    },
+    {
+        label: ['Received', 'passes / 90'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Received passes per 90']) || 0
+    },
+    {
+        label: ['Přesnost', 'přihrávek %'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Accurate passes %', 'Accurate passes, %']) || 0
+    },
+    {
+        label: ['Progresivní', 'přihrávky / 90'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Progressive passes per 90']) || 0
+    },
+    {
+        label: ['Přesnost', 'progres. %'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Accurate progressive passes %', 'Accurate progressive passes, %']) || 0
+    },
+    {
+        label: ['Passes to', 'final 3rd / 90'],
+        color: 'rgba(147, 51, 234, 0.75)', border: '#9333ea',
+        invert: false,
+        getValue: (p) => getSafeMetric(p, ['Passes to final third per 90']) || 0
+    }
+];
+function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
+    // POJISTKA: Pokud teamName není předaný, vzít ho rovnou z horní roletky soupeře
+    if (!teamName || teamName === 'global-opponent') {
+        const globalOppSelect = document.getElementById('global-opponent');
+        teamName = globalOppSelect ? globalOppSelect.value : '';
+    }
+
+    console.log("Kreslím graf pro hráče:", playerName, "| Tým:", teamName);
+    
+    const card = document.getElementById(cardContainerId);
+    if (!playerName) {
+        if (card) card.style.display = 'none';
+        if (charts[canvasId]) charts[canvasId].destroy();
+        return;
+    }
+
+    if (!PLAYERS_DATA || PLAYERS_DATA.length === 0) {
+        console.error("CHYBA: Hráčská data (PLAYERS_DATA) se ještě nestáhla!");
+        return;
+    }
+
+    const playerData = PLAYERS_DATA.find(d => d.Player && d.Player.trim() === playerName.trim());
+    
+    if (!playerData) {
+        console.error("CHYBA: Hráč '" + playerName + "' nebyl v datech vůbec nalezen!");
+        return;
+    }
+
+    console.log("Hráč úspěšně nalezen:", playerData);
+
+    // Detekce brankáře
+    const posStr = String(playerData['Position'] || playerData.Pozice || '').toUpperCase();
+    const isGK = posStr.includes('GK');
+
+    // A) VYPLNĚNÍ KARTY HRÁČE
+    if (card) {
+        card.style.display = 'block'; 
+        const setVal = (cls, val) => { const el = card.querySelector(cls); if (el) el.textContent = val; };
         
-        const card = document.getElementById(cardContainerId);
-        if (!playerName) {
-            if (card) card.style.display = 'none';
-            if (charts[canvasId]) charts[canvasId].destroy();
-            return;
-        }
+        setVal('.card-name', playerData.Player);
+        setVal('.card-pos-age', `${playerData['Position'] || playerData.Pozice || ''} • ${playerData.Age || ''} let`);
+        setVal('.card-minutes', `${playerData['Minutes played'] || playerData['Minutes'] || 0}' / ${playerData['Matches played'] || playerData['Matches'] || 0} z.`);
+        setVal('.card-yellow', playerData['Yellow cards'] || 0);
+        setVal('.card-red', playerData['Red cards'] || 0);
 
-        if (!PLAYERS_DATA || PLAYERS_DATA.length === 0) {
-            console.error("CHYBA: Hráčská data (PLAYERS_DATA) se ještě nestáhla!");
-            return;
-        }
+        const spContainer = card.querySelector('.card-set-pieces');
 
-        // Hledáme hráče (pokud by se lišila velikost písmen, ošetříme to přes .trim())
-        const playerData = PLAYERS_DATA.find(d => d.Player && d.Player.trim() === playerName.trim());
-        
-        if (!playerData) {
-            console.error("CHYBA: Hráč '" + playerName + "' nebyl v datech vůbec nalezen!");
-            return;
-        }
-
-        console.log("Hráč úspěšně nalezen:", playerData);
-
-        // A) VYPLNĚNÍ KARTY HRÁČE
-if (card) {
-            // Použijeme 'block', aby se neporušil CSS grid
-            card.style.display = 'block'; 
-            const setVal = (cls, val) => { const el = card.querySelector(cls); if(el) el.textContent = val; };
-            
-            setVal('.card-name', playerData.Player);
-            setVal('.card-pos-age', `${playerData['Position'] || playerData.Pozice || ''} • ${playerData.Age || ''} let`);
-            
-            // Očištění Wyscout názvů - vymazali jsme to "_val" na konci! Zohledněno i to, kdyby chybělo 'played'
-            setVal('.card-minutes', `${playerData['Minutes played'] || playerData['Minutes'] || 0}' / ${playerData['Matches played'] || playerData['Matches'] || 0} z.`);
-            
+        if (isGK) {
+            // Gólman: obdržené góly, čistá konta, střely proti
+            const conceded = getSafeMetric(playerData, ['Conceded goals_GK', 'Conceded goals']) || 0;
+            const cleanSheets = getSafeMetric(playerData, ['Clean sheets_GK', 'Clean sheets']) || 0;
+            const shotsAgainst = getSafeMetric(playerData, ['Shots against_GK', 'Shots against']) || 0;
+            setVal('.card-goals-xg', `${conceded} OG • ${cleanSheets} ČK • ${shotsAgainst} střel`);
+            if (spContainer) spContainer.style.display = 'none';
+        } else {
+            // Hráč v poli
             let goals = playerData['Goals'] || 0;
             let xg = parseFloat(playerData['xG']) || 0;
             setVal('.card-goals-xg', `${goals} (${xg.toFixed(2)} xG)`);
             
-            setVal('.card-yellow', playerData['Yellow cards'] || 0);
-            setVal('.card-red', playerData['Red cards'] || 0);
-            
-            // Zpracování standardek (umí přečíst jak přepočet na 90, tak absolutní čísla)
-            const spContainer = card.querySelector('.card-set-pieces');
             let rohy = parseFloat(playerData['Corners per 90'] || playerData['Corners']) || 0;
             let primaky = parseFloat(playerData['Free kicks per 90'] || playerData['Free kicks']) || 0;
             let penalty = parseFloat(playerData['Penalties taken'] || playerData['Penalties']) || 0;
@@ -2695,117 +2815,167 @@ if (card) {
                     setVal('.sp-freekicks', primaky.toFixed(2));
                     setVal('.sp-penalties', penalty.toFixed(0));
                 } else {
-                    // Pokud je to dřevák, co standardky nekope, řádek zase schováme
                     spContainer.style.display = 'none';
                 }
             }
         }
+    }
 
-        // B) PIZZA GRAF
+    // B) PIZZA GRAF
+    let currentMinMins = parseInt(document.getElementById('min-minutes-slider').value) || 0;
+    let currentPosFilter = document.getElementById('position-filter-select').value || 'All';
 
-        let isOurTeam = canvasId.includes('our-')
-        let currentMinMins = parseInt(document.getElementById('min-minutes-slider').value) || 0;
-        let currentPosFilter = document.getElementById('position-filter-select').value || 'All';
-        
-        // 2. Pošleme to do matematického motoru
+    let activeLabels, activeBgColors, activeBdColors, currentPercentiles, currentRawValues;
+
+    if (isGK) {
+        // 1. Referenční skupina: VÝHRADNĚ gólmani ze stejné kategorie nad limitem minut
+        const gkPool = PLAYERS_DATA.filter(p => {
+            const sameCat = !playerData.Kategorie || !p.Kategorie || String(p.Kategorie).trim() === String(playerData.Kategorie).trim();
+            const pMins = getSafeMetric(p, ['Minutes played', 'Minutes']) || 0;
+            const pPos = String(p['Position'] || p.Pozice || '').toUpperCase();
+            return sameCat && pMins >= currentMinMins && pPos.includes('GK');
+        });
+
+        activeLabels = GK_METRICS.map(m => m.label);
+        activeBgColors = GK_METRICS.map(m => m.color);
+        activeBdColors = GK_METRICS.map(m => m.border);
+        currentRawValues = [];
+        currentPercentiles = [];
+
+        GK_METRICS.forEach(m => {
+            const val = m.getValue(playerData);
+            currentRawValues.push(Number(val.toFixed(2)));
+
+            const poolVals = gkPool.map(p => m.getValue(p)).sort((a, b) => a - b);
+            if (poolVals.length <= 1) {
+                currentPercentiles.push(50);
+                return;
+            }
+            const rank = poolVals.filter(v => v < val).length;
+            let pct = Math.round((rank / (poolVals.length - 1)) * 100);
+            if (m.invert) pct = 100 - pct;
+            currentPercentiles.push(pct);
+        });
+    } else {
+        // Původní výpočet pro hráče v poli
+        activeLabels = pizzaLabels;
+        activeBgColors = bgColors;
+        activeBdColors = bdColors;
+
         let refGroup = getReferenceGroup(playerData.Kategorie, currentMinMins, currentPosFilter);
-        // 2. Dynamický výpočet PERCENTILŮ
-        let currentPercentiles = metricKeys.map(key => {
-            // Získáme čistou hodnotu našeho hráče (už nepotřebujeme '_val', bereme rovnou přesný klíč z pole)
+
+        currentPercentiles = metricKeys.map(key => {
             let rawValue = parseFloat(playerData[key]);
             if (isNaN(rawValue)) return 0;
-
-            // Získáme všechny platné hodnoty u této metriky od vyfiltrovaných hráčů
             let refValues = refGroup.map(p => parseFloat(p[key]));
-            
             return calculateDynamicPercentile(rawValue, refValues);
         });
 
-        // 3. Získání reálných čísel (RAW HODNOTY)
-        let currentRawValues = metricKeys.map(key => {
+        currentRawValues = metricKeys.map(key => {
             let val = parseFloat(playerData[key]);
             return isNaN(val) ? '-' : val;
         });
+    }
 
-        const canvasEl = document.getElementById(canvasId);
-        if (!canvasEl) {
-            console.error("CHYBA: Plátno (canvas) s ID '" + canvasId + "' nebylo v HTML nalezeno!");
-            return;
-        }
+    const canvasEl = document.getElementById(canvasId);
+    if (!canvasEl) {
+        console.error("CHYBA: Plátno (canvas) s ID '" + canvasId + "' nebylo v HTML nalezeno!");
+        return;
+    }
 
-        const ctx = canvasEl.getContext('2d');
-        if (charts[canvasId]) charts[canvasId].destroy(); // Zničíme předchozí graf
+    const ctx = canvasEl.getContext('2d');
+    if (charts[canvasId]) charts[canvasId].destroy();
 
-        charts[canvasId] = new Chart(ctx, {
-            type: 'polarArea',
-            data: {
-                labels: pizzaLabels,
-                datasets: [
-                    {
-                        data: currentPercentiles,
-                      order: 2,
-                        backgroundColor: bgColors, borderColor: bdColors, borderWidth: 1.5,
-                        datalabels: {
-                            labels: {
-                                valueBox: {
-                                    align: 'center', anchor: 'center', backgroundColor: 'white', borderColor: '#333',
-                                    borderWidth: 1, borderRadius: 4, color: '#333', font: { weight: 'bold', size: 10 },
-                                    padding: { top: 4, bottom: 4, left: 6, right: 6 },
-                                    formatter: function(value, context) { return currentRawValues[context.dataIndex] || ''; }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        data: Array(16).fill(100),
-                      order: 1,
-                        backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(0,0,0,0)', borderWidth: 0,
-                        datalabels: {
-                            labels: {
-                                nameLabel: {
-                                    align: 'end', anchor: 'end', offset: 6, textAlign: 'center',
-                                    color: function(context) { return bdColors[context.dataIndex]; },
-                                    font: { weight: '600', size: 10 },
-                                    formatter: function(value, context) { return context.chart.data.labels[context.dataIndex]; },
-                                    rotation: function(context) {
-                                        const total = context.chart.data.labels.length;
-                                        const step = 360 / total;
-                                        let angle = (context.dataIndex * step) + (step / 2) - 90;
-                                        let tanAngle = angle + 90;
-                                        let normAngle = (tanAngle % 360 + 360) % 360;
-                                        if (normAngle > 90 && normAngle < 270) { return tanAngle + 180; }
-                                        return tanAngle;
-                                    }
+    charts[canvasId] = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: activeLabels,
+            datasets: [
+                // 1. SKUTEČNÉ VÝSEČE (bez popisků)
+                {
+                    data: currentPercentiles,
+                    order: 2,
+                    backgroundColor: activeBgColors,
+                    borderColor: activeBdColors,
+                    borderWidth: 1.5,
+                    datalabels: { display: false }
+                },
+                // 2. NÁZVY METRIK NA 100 %
+                {
+                    data: Array(activeLabels.length).fill(100),
+                    order: 1,
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    borderColor: 'rgba(0,0,0,0)',
+                    borderWidth: 0,
+                    datalabels: {
+                        labels: {
+                            nameLabel: {
+                                align: 'end', anchor: 'end', offset: 6, textAlign: 'center',
+                                color: function(context) { return activeBdColors[context.dataIndex]; },
+                                font: { weight: '600', size: 10 },
+                                formatter: function(value, context) { return context.chart.data.labels[context.dataIndex]; },
+                                rotation: function(context) {
+                                    const total = context.chart.data.labels.length;
+                                    const step = 360 / total;
+                                    let angle = (context.dataIndex * step) + (step / 2) - 90;
+                                    let tanAngle = angle + 90;
+                                    let normAngle = (tanAngle % 360 + 360) % 360;
+                                    if (normAngle > 90 && normAngle < 270) { return tanAngle + 180; }
+                                    return tanAngle;
                                 }
                             }
                         }
                     }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false, layout: { padding: 50 },interaction: {
-                    mode: 'index',
-                    intersect: true
                 },
-                scales: { r: { min: 0, max: 100, ticks: { display: false } } },
-                plugins: {
-                    legend: { display: false },datalabels: {
-                        events: []
-                    },
-                    tooltip: {
-                        displayColors: false,
-                        filter: function(item) { return item.datasetIndex === 0; },
-                        callbacks: {
-                            label: function(context) {
-                                let index = context.dataIndex;
-                                return `${context.chart.data.labels[index].join(' ')}: ${currentRawValues[index]} (${context.raw}. PR)`;
+                // 3. RÁMEČKY S HODNOTAMI FIXNĚ NA 60 %
+                {
+                    data: Array(activeLabels.length).fill(60),
+                    order: 0,
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    borderColor: 'rgba(0,0,0,0)',
+                    borderWidth: 0,
+                    datalabels: {
+                        labels: {
+                            valueBox: {
+                                anchor: 'end',
+                                align: 'center',
+                                backgroundColor: 'white',
+                                borderColor: '#333',
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                color: '#333',
+                                font: { weight: 'bold', size: 10 },
+                                padding: { top: 3, bottom: 3, left: 5, right: 5 },
+                                formatter: function(value, context) { return currentRawValues[context.dataIndex] ?? ''; }
                             }
                         }
                     }
                 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 50 },
+            interaction: { mode: 'index', intersect: true },
+            scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+            plugins: {
+                legend: { display: false },
+                datalabels: { events: [] },
+                tooltip: {
+                    displayColors: false,
+                    filter: function(item) { return item.datasetIndex === 0; },
+                    callbacks: {
+                        label: function(context) {
+                            let index = context.dataIndex;
+                            return `${context.chart.data.labels[index].join(' ')}: ${currentRawValues[index]} (${context.raw}. PR)`;
+                        }
+                    }
+                }
             }
-        });
-    }
+        }
+    });
+}
 let globalPizzaState = { mins: 300, pos: 'All', sp: false };
 
     function updatePizzaFilters() {
