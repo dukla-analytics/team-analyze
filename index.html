@@ -494,6 +494,10 @@
             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
         </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer text-sm">
+    <input type="checkbox" id="gk-only-toggle" onchange="updatePizzaFilters()">
+    <span>Pouze brankáři</span>
+</label>
     </div>
 </div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
@@ -655,6 +659,10 @@
             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
         </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer text-sm">
+    <input type="checkbox" id="our-gk-only-toggle" onchange="updatePizzaFilters()">
+    <span>Pouze brankáři</span>
+</label>
     </div>
 </div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
@@ -2961,9 +2969,10 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            startAngle: isGK ? -90 : 0,
             layout: { padding: 50 },
             interaction: { mode: 'index', intersect: true },
-            scales: { r: { min: 0, max: 100, startAngle: isGK ? -90 : 0, ticks: { display: false } } },
+            scales: { r: { min: 0, max: 100, ticks: { display: false } } },
             plugins: {
                 legend: { display: false },
                 datalabels: { events: [] },
@@ -2997,6 +3006,10 @@ let globalPizzaState = { mins: 300, pos: 'All', sp: false };
         let ourSp = document.getElementById('our-set-pieces-toggle').checked;
         globalPizzaState.sp = (oppSp !== globalPizzaState.sp) ? oppSp : ourSp;
 
+        let oppGk = document.getElementById('gk-only-toggle')?.checked || false;
+        let ourGk = document.getElementById('our-gk-only-toggle')?.checked || false;
+        globalPizzaState.gk = (oppGk !== globalPizzaState.gk) ? oppGk : ourGk;
+
         // Vynutíme stejné hodnoty na obou záložkách, ať je trenér kdekoli
         document.getElementById('min-minutes-slider').value = globalPizzaState.mins;
         document.getElementById('our-min-minutes-slider').value = globalPizzaState.mins;
@@ -3008,6 +3021,9 @@ let globalPizzaState = { mins: 300, pos: 'All', sp: false };
         
         document.getElementById('set-pieces-toggle').checked = globalPizzaState.sp;
         document.getElementById('our-set-pieces-toggle').checked = globalPizzaState.sp;
+
+        if (document.getElementById('gk-only-toggle')) document.getElementById('gk-only-toggle').checked = globalPizzaState.gk;
+        if (document.getElementById('our-gk-only-toggle')) document.getElementById('our-gk-only-toggle').checked = globalPizzaState.gk;
 
         // 2. NAČTEME TÝMY
         const oppTeam = document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : "";
@@ -3025,11 +3041,11 @@ let globalPizzaState = { mins: 300, pos: 'All', sp: false };
         };
 
         // 3. PŘEFILTROVÁNÍ ROLETEK HRÁČŮ
-        if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', globalPizzaState.mins, globalPizzaState.sp);
-        if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', globalPizzaState.mins, globalPizzaState.sp);
-        
-        fillPlayerDropdown(ourTeam, 'our-player-select', globalPizzaState.mins, globalPizzaState.sp);
-        if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', globalPizzaState.mins, globalPizzaState.sp);
+    if (oppTeam) fillPlayerDropdown(oppTeam, 'opponent-player-select', globalPizzaState.mins, globalPizzaState.sp, globalPizzaState.gk);
+    if (oppCompareTeam) fillPlayerDropdown(oppCompareTeam, 'compare-player-select', globalPizzaState.mins, globalPizzaState.sp, globalPizzaState.gk);
+    
+    fillPlayerDropdown(ourTeam, 'our-player-select', globalPizzaState.mins, globalPizzaState.sp, globalPizzaState.gk);
+    if (ourCompareTeam) fillPlayerDropdown(ourCompareTeam, 'our-compare-player-select', globalPizzaState.mins, globalPizzaState.sp, globalPizzaState.gk);
 
         // 4. PŘEKRESLENÍ VŠECH AKTIVNÍCH GRAFŮ
         const handleChartRedraw = (selectId, savedPlayer, teamName, canvasId, cardId) => {
