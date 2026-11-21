@@ -485,19 +485,18 @@
             <option value="Útok">Pouze útočníci (CF, WF, RW, LW)</option>
         </select>
     </div>
-    <!-- Třetí část: Přepínač na standardky -->
-    <div class="flex flex-col w-full sm:w-1/4 justify-center">
-        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">Speciální dovednost:</label>
+<div class="flex flex-col w-full sm:w-1/4 justify-center gap-2">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Speciální filtr:</label>
         <label class="relative inline-flex items-center cursor-pointer">
-            <!-- DŮLEŽITÉ: Přidán onchange="updatePizzaFilters()" -->
             <input type="checkbox" id="set-pieces-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
         </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-sm">
-    <input type="checkbox" id="gk-only-toggle" onchange="updatePizzaFilters()">
-    <span>Pouze brankáři</span>
-</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="gk-only-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <span class="ml-2 text-xs font-bold text-gray-700">Pouze brankáři</span>
+        </label>
     </div>
 </div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
@@ -651,18 +650,19 @@
         </select>
     </div>
     <!-- Třetí část: Přepínač na standardky -->
-    <div class="flex flex-col w-full sm:w-1/4 justify-center">
-        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">Speciální dovednost:</label>
+<!-- Třetí část: Přepínače (Standardky + Brankáři) -->
+    <div class="flex flex-col w-full sm:w-1/4 justify-center gap-2">
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Speciální filtr:</label>
         <label class="relative inline-flex items-center cursor-pointer">
-            <!-- DŮLEŽITÉ: Přidán onchange="updatePizzaFilters()" -->
             <input type="checkbox" id="our-set-pieces-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
         </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-sm">
-    <input type="checkbox" id="our-gk-only-toggle" onchange="updatePizzaFilters()">
-    <span>Pouze brankáři</span>
-</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="our-gk-only-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <span class="ml-2 text-xs font-bold text-gray-700">Pouze brankáři</span>
+        </label>
     </div>
 </div>
     <!-- Wrapper s overflow-x pro menší obrazovky -->
@@ -3080,68 +3080,78 @@ document.getElementById('position-filter-select')?.addEventListener('change', up
 document.getElementById('our-min-minutes-slider')?.addEventListener('input', updatePizzaFilters);
 document.getElementById('our-position-filter-select')?.addEventListener('change', updatePizzaFilters);
 function toggleCompareMode(prefix = '') {
-        const isChecked = document.getElementById(prefix + 'compare-toggle').checked;
-        const leftSide = document.getElementById(prefix + 'scouting-left');
-        const rightSide = document.getElementById(prefix + 'scouting-right');
-        const wrapper = document.getElementById(prefix + 'scouting-wrapper');
+    const isChecked = document.getElementById(prefix + 'compare-toggle').checked;
+    const leftSide = document.getElementById(prefix + 'scouting-left');
+    const rightSide = document.getElementById(prefix + 'scouting-right');
+    const wrapper = document.getElementById(prefix + 'scouting-wrapper');
+    
+    if (isChecked) {
+        if (wrapper) wrapper.classList.add('gap-6');
         
-        if (isChecked) {
-            // ZAPNUTO: Rozdělení obrazovky, přidání mezery a dělící čáry
-            if (wrapper) wrapper.classList.add('gap-6');
-            
-            leftSide.classList.remove('w-full', 'min-w-full');
-            leftSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
-            
-            rightSide.classList.remove('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
-            // ZDE JE ZMĚNA: Dynamicky přidáváme padding a border (lg:border-l, lg:border-gray-200, lg:pl-6)
-            rightSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
+        leftSide.classList.remove('w-full', 'min-w-full');
+        leftSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
+        
+        rightSide.classList.remove('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
+        rightSide.classList.add('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
 
-            const teamSelect = document.getElementById(prefix + 'compare-team-select');
-            if (teamSelect && teamSelect.options.length <= 1) {
-                const currentCat = CONFIG.primaryTeam.includes('U17') ? 'U17' : (CONFIG.primaryTeam.includes('U15') ? 'U15' : 'U19');
-                const validTeams = [...new Set(PLAYERS_DATA.filter(p => p.Kategorie && p.Kategorie.trim() === currentCat).map(p => p.Team))].sort();
-                
-                validTeams.forEach(t => teamSelect.add(new Option(t, t)));
-                
-                const targetPreFill = prefix === '' ? CONFIG.primaryTeam : (document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : null);
-                
-                if (targetPreFill && validTeams.includes(targetPreFill)) {
-                    teamSelect.value = targetPreFill;
-                    compareTeamChanged(prefix);
-                }
+        const teamSelect = document.getElementById(prefix + 'compare-team-select');
+        if (teamSelect && teamSelect.options.length <= 1) {
+            const currentCat = CONFIG.primaryTeam.includes('U17') ? 'U17' : (CONFIG.primaryTeam.includes('U15') ? 'U15' : 'U19');
+            
+            // OPRAVA: Bezpečně vytáhne týmy z Team i Team within selected timeframe
+            const validTeams = [...new Set(
+                PLAYERS_DATA
+                    .filter(p => !p.Kategorie || String(p.Kategorie).trim() === currentCat)
+                    .map(p => String(p['Team'] || p['Team within selected timeframe'] || p['team'] || '').trim())
+                    .filter(t => t !== '')
+            )].sort();
+            
+            validTeams.forEach(t => teamSelect.add(new Option(t, t)));
+            
+            const targetPreFill = prefix === '' 
+                ? CONFIG.primaryTeam 
+                : (document.getElementById('global-opponent') ? document.getElementById('global-opponent').value : null);
+            
+            if (targetPreFill && validTeams.includes(targetPreFill)) {
+                teamSelect.value = targetPreFill;
+                compareTeamChanged(prefix);
             }
-        } else {
-            // VYPNUTO: Návrat do plné šířky a smazání úplně všeho navíc
-            if (wrapper) wrapper.classList.remove('gap-6');
-            
-            leftSide.classList.add('w-full', 'min-w-full');
-            leftSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
-            
-            rightSide.classList.add('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
-            // ZDE JE ZMĚNA: Dynamicky mažeme i ten neviditelný okraj
-            rightSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
         }
+    } else {
+        if (wrapper) wrapper.classList.remove('gap-6');
+        
+        leftSide.classList.add('w-full', 'min-w-full');
+        leftSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]');
+        
+        rightSide.classList.add('w-0', 'min-w-0', 'opacity-0', 'overflow-hidden');
+        rightSide.classList.remove('w-[90vw]', 'min-w-[90vw]', 'lg:w-[calc(50%_-_12px)]', 'lg:min-w-[calc(50%_-_12px)]', 'opacity-100', 'lg:border-l', 'lg:border-gray-200', 'lg:pl-6');
     }
+}
 
-    function compareTeamChanged(prefix = '') {
-        const selectedTeam = document.getElementById(prefix + 'compare-team-select').value;
-        const playerSelect = document.getElementById(prefix + 'compare-player-select');
-        
-        const card = document.getElementById(prefix + 'compare-player-card');
-        const canvasId = prefix + 'compare-pizza-canvas';
-        
-        // Zneviditelnit kartu a smazat graf při změně týmu
-        if (card) card.style.display = 'none';
-        if (charts[canvasId]) charts[canvasId].destroy();
-        
-        if (selectedTeam) {
-            fillPlayerDropdown(selectedTeam, prefix + 'compare-player-select');
-            playerSelect.disabled = false;
-        } else {
-            playerSelect.innerHTML = '<option value="">-- Vyberte hráče --</option>';
-            playerSelect.disabled = true;
-        }
+function compareTeamChanged(prefix = '') {
+    const selectedTeam = document.getElementById(prefix + 'compare-team-select').value;
+    const playerSelect = document.getElementById(prefix + 'compare-player-select');
+    
+    const card = document.getElementById(prefix + 'compare-player-card');
+    const canvasId = prefix + 'compare-pizza-canvas';
+    
+    if (card) card.style.display = 'none';
+    if (charts[canvasId]) charts[canvasId].destroy();
+    
+    if (selectedTeam) {
+        // OPRAVA: Předáváme i aktuální stav filtrů (minuty, exekutoři, brankáři)
+        fillPlayerDropdown(
+            selectedTeam, 
+            prefix + 'compare-player-select', 
+            globalPizzaState.mins, 
+            globalPizzaState.sp, 
+            globalPizzaState.gk
+        );
+    } else {
+        playerSelect.innerHTML = '<option value="">-- Vyberte hráče --</option>';
+        playerSelect.disabled = true;
     }
+}
     // =========================================================
     // FILTR: KLOUZAVÁ FORMA (Posledních 5 zápasů)
     // =========================================================
