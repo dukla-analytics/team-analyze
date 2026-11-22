@@ -521,12 +521,12 @@
     <div class="flex overflow-x-auto pb-4 snap-x" id="scouting-wrapper">
  
         <!-- LEVÁ STRANA: Původní hráč -->
-        <div id="scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
+        <div id="scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out flex flex-col">
             <select id="opponent-player-select" onchange="renderPizzaChart(this.value, document.getElementById('global-opponent').value, 'opponent-pizza-canvas', 'opponent-player-card')" class="border border-gray-300 rounded p-2 mb-6 shadow-sm w-full max-w-sm font-bold text-brand-red">
                 <option value="">-- Nejdřív zvolte soupeře v hlavičce --</option>
             </select>
 
-            <div class="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+            <div class="flex-1 flex flex-col 2xl:grid 2xl:grid-cols-3 gap-6">
                 <div class="2xl:col-span-1" id="opponent-player-card" style="display:none;">
                     <div class="player-card">
                         <div class="card-name">-</div>
@@ -580,14 +580,14 @@
 </div>
                     </div>
                 </div>
-                <div class="2xl:col-span-2 relative h-[450px]">
+                <div class="mt-auto 2xl:mt-0 2xl:col-span-2 relative h-[450px]">
                     <canvas id="opponent-pizza-canvas"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- PRAVÁ STRANA: Hráč pro porovnání (Základně skryto) -->
-        <div id="scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
+        <div id="scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out flex flex-col">
             
             <div class="flex flex-col sm:flex-row gap-2 mb-6">
                 <!-- Výběr TÝMU pro porovnání -->
@@ -600,7 +600,7 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+            <div class="flex-1 flex flex-col 2xl:grid 2xl:grid-cols-3 gap-6">
                 <div class="2xl:col-span-1" id="compare-player-card" style="display:none;">
                     <div class="player-card">
                         <div class="card-name">-</div>
@@ -654,7 +654,7 @@
 </div>
                     </div>
                 </div>
-                <div class="2xl:col-span-2 relative h-[450px]">
+                <div class="mt-auto 2xl:mt-0 2xl:col-span-2 relative h-[450px]">
                     <canvas id="compare-pizza-canvas"></canvas>
                 </div>
             </div>
@@ -723,12 +723,12 @@
     <div class="flex overflow-x-auto pb-4 snap-x" id="our-scouting-wrapper">
         
         <!-- LEVÁ STRANA: Náš hráč -->
-        <div id="our-scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
+        <div id="our-scouting-left" class="w-full min-w-full flex-shrink-0 snap-center transition-all duration-500 ease-in-out flex flex-col">
             <select id="our-player-select" onchange="renderPizzaChart(this.value, CONFIG.ourTeam, 'our-pizza-canvas', 'our-player-card')" class="border border-gray-300 rounded p-2 mb-6 shadow-sm w-full max-w-sm font-bold text-brand-red">
                 <option value="">-- Vyberte hráče --</option>
             </select>
 
-            <div class="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+            <div class="flex-1 flex flex-col 2xl:grid 2xl:grid-cols-3 gap-6">
                 <div class="2xl:col-span-1" id="our-player-card" style="display:none;">
                     <div class="player-card">
                         <div class="card-name">-</div>
@@ -782,14 +782,14 @@
 </div>
                     </div>
                 </div>
-                <div class="2xl:col-span-2 relative h-[450px]">
+                <div class="mt-auto 2xl:mt-0 2xl:col-span-2 relative h-[450px]">
                     <canvas id="our-pizza-canvas"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- PRAVÁ STRANA: Hráč pro porovnání (Základně skryto) -->
-        <div id="our-scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out">
+        <div id="our-scouting-right" class="w-0 min-w-0 opacity-0 overflow-hidden flex-shrink-0 snap-center transition-all duration-500 ease-in-out flex flex-col">
             
             <div class="flex flex-col sm:flex-row gap-2 mb-6">
                 <!-- Výběr TÝMU pro porovnání -->
@@ -802,7 +802,7 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+            <div class="flex-1 flex flex-col 2xl:grid 2xl:grid-cols-3 gap-6">
                 <div class="2xl:col-span-1" id="our-compare-player-card" style="display:none;">
                     <div class="player-card">
                         <div class="card-name">-</div>
@@ -856,7 +856,7 @@
 </div>
                     </div>
                 </div>
-                <div class="2xl:col-span-2 relative h-[450px]">
+                <div class="mt-auto 2xl:mt-0 2xl:col-span-2 relative h-[450px]">
                     <canvas id="our-compare-pizza-canvas"></canvas>
                 </div>
             </div>
