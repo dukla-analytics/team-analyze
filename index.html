@@ -9,12 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- 1. Nejdříve se musí načíst hlavní knihovna Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <script src="rating.js"></script>
   <!-- 2. Až potom se může načíst její plugin pro popisky -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
   <!-- Tailwind a zbytek... -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
   <script>
     tailwind.config = {
       theme: {
@@ -67,6 +68,23 @@
         .card-icon { width: 13px; height: 18px; border-radius: 2px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
         .yellow-card { background-color: #facc15; border: 1px solid #eab308; }
         .red-card { background-color: #ef4444; border: 1px solid #dc2626; }
+        .rating-badge {
+            display: inline-block;
+            min-width: 42px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+            color: #fff;
+            font-variant-numeric: tabular-nums; /* Zarovná čísla přesně pod sebe v tabulkách */
+        }
+
+        .rating-elite { background-color: #0284c7; } /* Modrá */
+        .rating-good  { background-color: #16a34a; } /* Zelená */
+        .rating-avg   { background-color: #d97706; } /* Oranžová */
+        .rating-low   { background-color: #dc2626; } /* Červená */
+        .rating-none  { background-color: #64748b; opacity: 0.7; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col">
@@ -1328,12 +1346,13 @@ function loadPlayersData() {
             header: true,
             dynamicTyping: true,
             skipEmptyLines: true,
+          
             complete: function(results) {
-                PLAYERS_DATA = results.data;
-                console.log("Hráčská data úspěšně stažena, celkem řádků:", PLAYERS_DATA.length);
-                
-                // OKAMŽITĚ po stažení naplníme roletku pro náš tým
-                fillPlayerDropdown(CONFIG.ourTeam, 'our-player-select');
+              PLAYERS_DATA = RatingEngine.calculate(results.data, 300);
+              console.log("Hráčská data úspěšně stažena, celkem řádků:", PLAYERS_DATA.length);
+    
+              // OKAMŽITĚ po stažení naplníme roletku pro náš tým
+              fillPlayerDropdown(CONFIG.primaryTeam, 'our-player-select');
             },
             error: function(err) {
                 console.error("Chyba při stahování hráčských dat:", err);
@@ -1368,13 +1387,21 @@ function fillPlayerDropdown(teamName, selectElementId, minMins = 0, reqSetPieces
         return true;
     });
 
-    teamPlayers.sort((a, b) => (a.Player || "").localeCompare(b.Player || ""));
+    teamPlayers.sort((a, b) => {
+        const rA = a.rating !== null && a.rating !== undefined ? a.rating : -1;
+        const rB = b.rating !== null && b.rating !== undefined ? b.rating : -1;
+        if (rB !== rA) return rB - rA;
+        return (a.Player || "").localeCompare(b.Player || "");
+    });
 
     selectEl.innerHTML = '<option value="">-- Vyber hráče --</option>';
     teamPlayers.forEach(p => {
         let pos = p.Position || p.OriginalPosition || p.Pozice || "";
         let posText = pos ? ` (${pos})` : '';
-        selectEl.innerHTML += `<option value="${p.Player}">${p.Player}${posText}</option>`;
+        let ratingText = (p.rating !== null && p.rating !== undefined)
+            ? ` ★ ${p.rating.toFixed(1).replace('.', ',')}`
+            : ' · —';
+        selectEl.innerHTML += `<option value="${p.Player}">${p.Player}${posText}${ratingText}</option>`;
     });
 
     selectEl.disabled = (teamPlayers.length === 0);
@@ -2877,7 +2904,10 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
         card.style.display = 'block'; 
         const setVal = (cls, val) => { const el = card.querySelector(cls); if (el) el.textContent = val; };
         
-        setVal('.card-name', playerData.Player);
+        const nameEl = card.querySelector('.card-name');
+        if (nameEl) {
+          nameEl.innerHTML = `<div class="flex justify-between items-center gap-2"><span>${playerData.Player}</span>${renderRatingBadge(playerData.rating)}</div>`;
+        }
         setVal('.card-pos-age', `${playerData['Position'] || playerData.Pozice || ''} • ${playerData.Age || ''} let`);
         setVal('.card-minutes', `${playerData['Minutes played'] || playerData['Minutes'] || 0}' / ${playerData['Matches played'] || playerData['Matches'] || 0} z.`);
         setVal('.card-yellow', playerData['Yellow cards'] || 0);
@@ -3085,7 +3115,22 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
             }
         }
     });
+  RatingEngine.inspect(playerData.Player);
 }
+function renderRatingBadge(rating) {
+  if (rating === null || rating === undefined) {
+    return `<span class="rating-badge rating-none" title="Méně než 300 minut">—</span>`;
+  }
+
+  let colorClass = 'rating-low';
+  if (rating >= 8.0) colorClass = 'rating-elite';
+  else if (rating >= 7.0) colorClass = 'rating-good';
+  else if (rating >= 6.2) colorClass = 'rating-avg';
+
+  const formatted = rating.toFixed(1).replace('.', ',');
+  return `<span class="rating-badge ${colorClass}">${formatted}</span>`;
+}
+    
 let globalPizzaState = { mins: 300, pos: 'All', sp: false };
 
     function updatePizzaFilters() {
