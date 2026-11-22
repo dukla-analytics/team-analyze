@@ -90,7 +90,7 @@
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col">
 
   <!-- ==================== HLAVIČKA ==================== -->
-  <header class="bg-white border-b border-gray-300 px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-sm sticky top-0 z-50">
+  <header class="bg-white border-b border-gray-300 px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-sm lg:sticky lg:top-0 z-50">
     <div class="flex items-center gap-4">
       <div class="w-12 h-12 rounded bg-brand-red text-white font-black flex items-center justify-center text-2xl shadow-inner">D</div>
       <div>
@@ -481,7 +481,7 @@
         <!-- Přepínač (Toggle) pro porovnání -->
         <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="compare-toggle" class="sr-only peer" onchange="toggleCompareMode()">
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-red"></div>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             <span class="ml-3 text-sm font-bold text-gray-700">Porovnat s jiným hráčem</span>
         </label>
     </div>
@@ -507,12 +507,12 @@
         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Speciální filtr:</label>
         <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="set-pieces-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
-            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Jen exekutoři</span>
         </label>
         <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="gk-only-toggle" class="sr-only peer" onchange="updatePizzaFilters()">
-            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-red"></div>
+            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
             <span class="ml-2 text-xs font-bold text-gray-700">Pouze brankáři</span>
         </label>
     </div>
