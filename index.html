@@ -2854,7 +2854,12 @@ function renderPizzaChart(playerName, teamName, canvasId, cardContainerId) {
         return;
     }
 
-    const playerData = PLAYERS_DATA.find(d => d.Player && d.Player.trim() === playerName.trim());
+    const playerData = PLAYERS_DATA.find(d => {
+        if (!d.Player || d.Player.trim() !== playerName.trim()) return false;
+        if (!teamName) return true;
+        const pTeam = (d['Team'] || d['Team within selected timeframe'] || d['team'] || "").trim();
+        return pTeam === teamName.trim();
+    });
     
     if (!playerData) {
         console.error("CHYBA: Hráč '" + playerName + "' nebyl v datech vůbec nalezen!");
