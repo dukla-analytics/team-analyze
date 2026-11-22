@@ -85,7 +85,7 @@
         .rating-avg   { background-color: #d97706; } /* Oranžová */
         .rating-low   { background-color: #dc2626; } /* Červená */
         .rating-none  { background-color: #64748b; opacity: 0.7; }
-        input.peer:checked + div { background-color: #2563eb !important; }
+        input.peer:checked + div { background-color: #7a1527 !important; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col">
@@ -912,6 +912,55 @@
           <p>xG, xGA, střely a PPDA jsou průměry na dostupný zápas, bez přepočtu na 90 minut. Přesnost přihrávek je podíl součtu přesných a všech přihrávek.</p>
           <p>Ligové pořadí zde vyjadřuje vybranou metriku, nikoli body v soutěži. Výběr dostupných zápasů může ovlivnit průměry; zvlášť u týmů s nižším pokrytím.</p>
           <p>Data pocházejí z exportů Wyscout Team Stats. Excel a tento dashboard nenahrazuje mapy, hráčské detaily ani časový průběh PDF a videa.</p>
+          <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 max-w-4xl space-y-6">
+        <h2 class="text-2xl font-black text-gray-900 tracking-tight border-b border-gray-200 pb-3">
+          Hráčský modul: Rating a čtení grafů
+        </h2>
+
+        <!-- 1. HRÁČSKÝ RATING -->
+        <div class="space-y-3 text-sm text-gray-700 leading-relaxed">
+          <h3 class="text-base font-bold text-brand-red uppercase tracking-wide">1. Jak vzniká hráčský rating (5,0 – 10,0)</h3>
+          <p>
+            Rating není subjektivní známka za jeden zápas, ale datový výkonnostní index postavený na <strong>statistické metodě Z-score</strong>. Hráč je vždy porovnáván výhradně s ligovým mediánem své vlastní věkové kategorie a svého postu (6 skupin: <strong>GK, CB, FB, CM, AMW, CF</strong>) – stoper tedy nikdy nesoutěží v počtu gólů s hrotovým útočníkem.
+          </p>
+          <p>
+            Každý post má nastavenou sadu klíčových metrik s různou vahou, která odráží požadavky moderního a aktivního fotbalu (progresivní přihrávky, průnikovost do finální třetiny, úspěšnost 1v1, intenzita bránění, xG/xA či zabráněné góly u brankářů). Aby nedocházelo ke zkreslení na malém vzorku, rating se počítá až od <strong>300 odehraných minut</strong> (hráči pod limitem mají pomlčku <strong>—</strong>).
+          </p>
+          <div class="flex flex-wrap gap-2 pt-1 text-xs font-bold">
+            <span class="px-2.5 py-1 rounded text-white bg-[#0284c7]">8,0+ · Ligová elita</span>
+            <span class="px-2.5 py-1 rounded text-white bg-[#16a34a]">7,0 – 7,9 · Nadprůměr ligy</span>
+            <span class="px-2.5 py-1 rounded text-white bg-[#d97706]">6,2 – 6,9 · Ligový standard (medián = 6,6)</span>
+            <span class="px-2.5 py-1 rounded text-white bg-[#dc2626]">pod 6,2 · Podprůměr ligy</span>
+          </div>
+        </div>
+
+        <!-- 2. JAK ČÍST PIZZA GRAFY -->
+        <div class="space-y-3 text-sm text-gray-700 leading-relaxed border-t border-gray-100 pt-5">
+          <h3 class="text-base font-bold text-brand-red uppercase tracking-wide">2. Jak číst hráčské (Pizza) grafy</h3>
+          <p>
+            Graf kombinuje dva údaje najednou: <strong>délka barevné výseče</strong> ukazuje <strong>percentil (0 – 100)</strong>, zatímco <strong>číslo v bílém rámečku</strong> je reálná naměřená hodnota hráče (zpravidla přepočtená na 90 minut nebo v procentech). Pokud má hráč v nějaké metrice 85. percentil, znamená to, že je v ní statisticky lepší než 85 % ostatních hráčů ve zvolené skupině.
+          </p>
+          <ul class="list-disc pl-5 space-y-1.5">
+            <li><strong>Hráči v poli (16 metrik):</strong> <span class="text-emerald-600 font-bold">Zelená</span> = obrana a souboje · <span class="text-orange-500 font-bold">Oranžová</span> = rozehrávka a progrese · <span class="text-blue-500 font-bold">Modrá</span> = zisky, 1v1 a kreativita · <span class="text-purple-600 font-bold">Fialová</span> = zakončení a vápno.</li>
+            <li><strong>Brankáři (12 metrik):</strong> <span class="text-red-600 font-bold">Červená</span> = chytání, xGA, zabráněné góly a výběhy · <span class="text-purple-600 font-bold">Fialová</span> = hra nohou a distribuce. U obdržených gólů je osa obrácená (čím méně gólů, tím větší výseč).</li>
+          </ul>
+        </div>
+
+        <!-- 3. FILTRY A PŘEPÍNAČ ZÓN -->
+        <div class="space-y-3 text-sm text-gray-700 leading-relaxed border-t border-gray-100 pt-5">
+          <h3 class="text-base font-bold text-brand-red uppercase tracking-wide">3. Přepínač zón (Referenční skupina) a filtry</h3>
+          <p>
+            Roletka <strong>„Počítat percentil vůči“</strong> určuje, s kým zrovna hráče v grafu porovnáváte. V základním nastavení (<em>Celá liga – všichni v poli</em>) uvidíte profil hráče napříč celou soutěží – u stopera tak přirozeně vyniknou zelené a oranžové výseče, zatímco fialové (střelba) budou nízké.
+          </p>
+          <p>
+            Jakmile ale přepnete filtr na <strong>Pouze obránci / Pouze záložníci / Pouze útočníci</strong>, všechny výseče se okamžitě přepočítají jen vůči hráčům ze stejné řady. Přesně tak poznáte, zda je váš stoper nadprůměrný v rozehrávce i mezi ostatními obránci, nebo jestli je váš útočník silný v presinku oproti jiným forvardům. <em>(Pozn.: U brankářů se graf vždy automaticky počítá výhradně proti ostatním brankářům.)</em>
+          </p>
+          <ul class="list-disc pl-5 space-y-1.5">
+            <li><strong>Posuvník minut:</strong> Filtruje jak výběr hráčů v roletce, tak ligový vzorek, proti kterému se percentily počítají.</li>
+            <li><strong>Jen exekutoři / Pouze brankáři:</strong> Rychlé filtry pro vyhledání hráčů zahrávajících standardní situace (rohy, přímé kopy, penalty) nebo gólmanů daného týmu.</li>
+          </ul>
+        </div>
+      </div>
         </div>
       </div>
     </section>
