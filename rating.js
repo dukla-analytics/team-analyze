@@ -9,7 +9,15 @@ const RatingEngine = (() => {
     positionColumn: 'Position',      // Název sloupce s pozicí ve tvém CSV
     categoryColumn: 'Kategorie',     // Název sloupce s kategorií (U19, U17...)
     baseRating: 6.6,                 // Rating pro přesný medián ligy (Z = 0)
-    posMultiplier: 1.5,              // Sklon nad průměrem
+    posMultiplier: 1.6,              // Záložní hodnota, kdyby chyběl post
+    posMultiplierByGroup: {
+      GK: 1.8,
+      CB: 2.2, // nebo tvých 2.0
+      FB: 1.8,
+      CM: 1.8,
+      AMW: 1.7,
+      CF: 1.6
+    },
     negMultiplier: 1.2,              // Sklon pod průměrem (stlačuje spodek k 5.0)
     clampZMin: -2.5,                 // Ořez extrémů pro jednotlivé metriky (dole)
     clampZMax: 2.5,                  // Ořez extrémů pro jednotlivé metriky (nahoře)
@@ -256,7 +264,8 @@ const RatingEngine = (() => {
       });
 
       const adjustedZ = applyMinutesConfidence(zFinal, mins);
-      const multiplier = adjustedZ >= 0 ? PARAMS.posMultiplier : PARAMS.negMultiplier;
+      const posMult = PARAMS.posMultiplierByGroup[group] || PARAMS.posMultiplier;
+      const multiplier = adjustedZ >= 0 ? posMult : PARAMS.negMultiplier;
       const rawRating = PARAMS.baseRating + (adjustedZ * multiplier);
       const finalRating = clamp(rawRating, PARAMS.minRating, PARAMS.maxRating);
 
