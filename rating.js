@@ -1,17 +1,19 @@
 /**
- * rating.js – Z-score výpočet ratingu (5.0 – 10.0) podle postů
+ * rating.js – Z-score výpočet ratingu (5.0 – 10.0) podle postů a kategorií
  * Použití: const hraciSRatingem = RatingEngine.calculate(vsichniHraci, 300);
  */
 const RatingEngine = (() => {
-  // 1. Konfigurace parametrů modelu (snadné ladění na jednom místě)
+  // 1. Konfigurace parametrů modelu
   const PARAMS = {
     minutesColumn: 'Minutes played', // Název sloupce s minutáží ve tvém CSV
     positionColumn: 'Position',      // Název sloupce s pozicí ve tvém CSV
+    categoryColumn: 'Kategorie',     // Název sloupce s kategorií (U19, U17...)
     baseRating: 6.6,                 // Rating pro přesný medián ligy (Z = 0)
-    posMultiplier: 1.5,              // Sklon nad průměrem (roztahuje špičku k 9–10)
-    negMultiplier: 0.7,              // Sklon pod průměrem (stlačuje spodek k 5.0)
+    posMultiplier: 1.5,              // Sklon nad průměrem
+    negMultiplier: 1.2,              // Sklon pod průměrem (stlačuje spodek k 5.0)
     clampZMin: -2.5,                 // Ořez extrémů pro jednotlivé metriky (dole)
-    clampZMax: 3.5,                  // Ořez extrémů pro jednotlivé metriky (nahoře)
+    clampZMax: 2.5,                  // Ořez extrémů pro jednotlivé metriky (nahoře)
+    fullTrustMins: 600,              // Od 600 minut bereme data na 100 % vážně
     minRating: 5.0,
     maxRating: 10.0
   };
@@ -84,9 +86,10 @@ const RatingEngine = (() => {
       'PAdj Interceptions': 0.05
     }
   };
-let lastCalculated = [];
 
-// Pomocné funkce
+  let lastCalculated = [];
+
+  // Pomocné funkce
   function parseNum(val) {
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
     if (typeof val === 'string') {
@@ -121,23 +124,28 @@ let lastCalculated = [];
     return Math.sqrt(variance);
   }
 
+  // Tlumení výsledného Z-score podle odehraných minut (Super-sub pojistka)
+  function applyMinutesConfidence(zFinal, mins, fullTrustMins = PARAMS.fullTrustMins) {
+    const safeMins = Number(mins) || 0;
+    if (safeMins >= fullTrustMins) return zFinal;
+    const confidence = Math.sqrt(Math.min(1, safeMins / fullTrustMins));
+    return zFinal * confidence;
+  }
+
   // Získání a dopočet hodnot metrik
   function getMetricValue(p, metric) {
-    // 1. Dopočet úspěšných driblinků / 90
     if (metric === 'Successful dribbles per 90') {
       const dribbles = parseNum(p['Dribbles per 90']);
       const pct = parseNum(p['Successful dribbles %']);
       return dribbles * (pct / 100);
     }
 
-    // 2. Dopočet gólů / 90
     if (metric === 'Goals per 90') {
       const goals = parseNum(p['Goals']);
       const mins = parseNum(p[PARAMS.minutesColumn]);
       return mins > 0 ? (goals / mins) * 90 : 0;
     }
 
-    // 3. Brankářské metriky (podpora přípony _GK + pojistka na desetinnou tečku u Prevented goals)
     if (metric === 'Prevented goals per 90') {
       let val = null;
       if (hasVal(p, 'Prevented goals per 90_GK')) val = parseNum(p['Prevented goals per 90_GK']);
@@ -159,11 +167,10 @@ let lastCalculated = [];
       return hasVal(p, 'Exits per 90_GK') ? parseNum(p['Exits per 90_GK']) : parseNum(p['Exits per 90']);
     }
 
-    // 4. Standardní sloupec
     return parseNum(p[metric]);
   }
 
-  // Mapování Wyscout zkratek na 6 skupin (včetně LCB3, RCB3, LB5, LCMF3...)
+  // Mapování Wyscout zkratek na 6 skupin
   function mapPositionGroup(posString) {
     if (!posString) return null;
     const primary = String(posString).split(',')[0].trim().toUpperCase().replace(/[0-9]/g, '');
@@ -180,7 +187,6 @@ let lastCalculated = [];
 
   // Hlavní funkce výpočtu
   function calculate(players, minMinutes = 300) {
-    // Seskupení podle [Kategorie + Post], aby se nemíchala např. U19 s U15
     const buckets = {};
 
     players.forEach(p => {
@@ -249,16 +255,15 @@ let lastCalculated = [];
         });
       });
 
-      const rawRating = zFinal >= 0
-        ? PARAMS.baseRating + (zFinal * PARAMS.posMultiplier)
-        : PARAMS.baseRating + (zFinal * PARAMS.negMultiplier);
-
+      const adjustedZ = applyMinutesConfidence(zFinal, mins);
+      const multiplier = adjustedZ >= 0 ? PARAMS.posMultiplier : PARAMS.negMultiplier;
+      const rawRating = PARAMS.baseRating + (adjustedZ * multiplier);
       const finalRating = clamp(rawRating, PARAMS.minRating, PARAMS.maxRating);
 
       return {
         ...p,
         ratingGroup: group,
-        ratingZ: Number(zFinal.toFixed(2)),
+        ratingZ: Number(adjustedZ.toFixed(2)),
         rating: Number(finalRating.toFixed(1)),
         ratingBreakdown: breakdown
       };
